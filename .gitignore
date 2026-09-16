@@ -1,0 +1,16 @@
+node_modules/
+dist/
+target/
+.env
+.tools/
+data/*-source.html
+frontend/test-results/
+frontend/playwright-report/
+*.log
+.codex/
+.idea/
+.vscode/
+**/oracleJdk-*/
+**/.github/modernize/
+.env.*
+!.env.example
