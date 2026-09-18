@@ -1,0 +1,21 @@
+{
+  "catalogYear": "2026-2027",
+  "programs": [
+    {
+      "id": "computer-science-bs-2026-2027",
+      "name": "Computer Science",
+      "degree": "BS",
+      "totalCredits": 121,
+      "sourceUrl": "https://catalog.ncsu.edu/undergraduate/engineering/computer-science/computer-science-bs/",
+      "reviewStatus": "REVIEWED"
+    },
+    {
+      "id": "economics-ba-2026-2027",
+      "name": "Economics",
+      "degree": "BA",
+      "totalCredits": 120,
+      "sourceUrl": "https://catalog.ncsu.edu/undergraduate/management/economics/economics-ba/",
+      "reviewStatus": "REVIEWED"
+    }
+  ]
+}

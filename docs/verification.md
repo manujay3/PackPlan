@@ -1,6 +1,6 @@
 # Milestone 1 verification
 
-Performed September 15, 2026 (America/New_York).
+Verification began September 15, 2026 (America/New_York) and was updated September 16, 2026.
 
 ## Passed
 
@@ -16,7 +16,6 @@ The containers are left running for the user to inspect. Stop with `docker compo
 
 ## Still needs verification
 
-- Actual browser rendering, narrow-screen appearance, keyboard navigation, route navigation, and displayed retry/error states. HTTP smoke checks do not execute Vue in a browser.
 - Vite development server hot reload and its proxy in a live local development session; production Nginx proxy was exercised.
 - A fresh-machine setup beyond this Windows/Docker Desktop environment.
 
@@ -43,4 +42,9 @@ This supersedes the standalone-container connection status above.
 - `dev.ps1 check` passed through Nginx to Spring Boot and performed a real authenticated Neo4j query.
 - Stopped Neo4j: database status returned HTTP 503 while application status remained UP. Restarted Neo4j and confirmed the end-to-end check passed again.
 - Built the final frontend changes successfully. The page now checks API and database independently and disables retries until both checks finish.
-- Still unverified: the new database status display in an interactive browser and local Vite hot reload. Catalog, planning, Redis, and AWS remain unimplemented.
+- Interactive browser verification passed: the overview displayed both **Backend connected** and **Neo4j connected**.
+- Navigating to **About the project** and refreshing kept the About page visible, confirming client navigation and direct-route fallback in a browser.
+- Basic narrow-screen verification passed in browser device emulation: content and controls remained usable without an observed layout problem.
+- Basic keyboard verification passed: the user could tab through the navigation and retry control with a visible focus indicator.
+- Stopping the backend and retrying displayed **Connection unavailable** and **Database status unknown**. Restarting the backend and retrying restored both connected states.
+- Still unverified: local Vite hot reload and a fresh-machine setup. Catalog, planning, Redis, and AWS remain unimplemented.
