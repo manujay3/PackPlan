@@ -47,6 +47,16 @@ Ports bind only to the local machine. These containers are for local development
 
 Neo4j Community Edition is a separate Compose service. Spring Boot connects with the official Java driver, auto-configured by Spring Boot. No courses have been imported. `/api/status` checks the API itself; `/api/database/status` runs a read-only query and returns `{"status":"UP"}` or HTTP 503 with `{"status":"DOWN"}`. Driver details are not sent to clients. The overview displays these two checks separately.
 
+Two reviewed program-level records are available for the 2026-2027 catalog: Computer Science BS and Economics BA. They include program identity, total credits, source URL, and review status; course and requirement rules are not imported yet. Normal backend startup does not modify catalog data. To explicitly import or update these idempotent `Program` nodes during local development, start Neo4j and run:
+
+```powershell
+Set-Location C:\Users\manuj\Repos\PackPlan\backend
+$env:JAVA_HOME = 'C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot'
+.\mvnw.cmd spring-boot:run '-Dspring-boot.run.arguments=--packplan.catalog.import-programs=true'
+```
+
+After startup completes, stop the process with Ctrl+C. Repeating the import updates the same nodes rather than creating duplicates. With the backend running normally, `GET http://localhost:8080/api/catalog/programs` returns the imported programs. `catalogReady` remains `false` because program requirements have not been modeled or reviewed.
+
 Compose waits for Neo4j authentication/query readiness, then backend database readiness, then starts the frontend. Health checks continue after startup; an unhealthy service is reported but is not automatically restarted. Configuration follows [Spring Boot's Neo4j documentation](https://docs.spring.io/spring-boot/3.5/reference/data/nosql.html#data.nosql.neo4j).
 
 `backend/src/main/resources/application.properties` defaults to local demo settings. Set `NEO4J_URI`, `NEO4J_USERNAME`, and `NEO4J_PASSWORD` in the backend terminal to override them. Compose supplies `bolt://neo4j:7687` because containers use service names rather than your machine's `localhost`. Optional `.env` settings for Compose are illustrated in `.env.example`; a local Java process does not automatically load that file. Keep the default password for the already-created demo volume unless you also change the database password.

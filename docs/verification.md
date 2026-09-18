@@ -48,3 +48,12 @@ This supersedes the standalone-container connection status above.
 - Basic keyboard verification passed: the user could tab through the navigation and retry control with a visible focus indicator.
 - Stopping the backend and retrying displayed **Connection unavailable** and **Database status unknown**. Restarting the backend and retrying restored both connected states.
 - Still unverified: local Vite hot reload and a fresh-machine setup. Catalog, planning, Redis, and AWS remain unimplemented.
+
+## September 18: reviewed program metadata
+
+- Verified the saved 2026-2027 catalog snapshots identify Computer Science BS as 121 total credits and Economics BA as 120 total credits.
+- Added reviewed JSON records for those program-level fields, typed Java records, an explicit import service, and Neo4j repository queries. Requirement and course rules remain unreviewed and unimplemented.
+- The import trigger is disabled by default and runs only when `packplan.catalog.import-programs=true` is explicitly supplied.
+- All eight backend tests passed with zero failures, errors, or skips.
+- Imported both programs into the live local Neo4j database, repeated the import, and confirmed exactly two `Program` nodes remained.
+- Started the backend normally and confirmed `GET /api/catalog/programs` returned both reviewed records from Neo4j.

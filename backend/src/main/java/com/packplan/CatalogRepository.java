@@ -4,6 +4,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.SessionConfig;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Map;
 
 @Repository
@@ -16,6 +17,17 @@ public class CatalogRepository {
                 program.totalCredits = $totalCredits,
                 program.sourceUrl = $sourceUrl,
                 program.reviewStatus = $reviewStatus
+            """;
+    private static final String FIND_PROGRAMS = """
+            MATCH (program:Program)
+            RETURN program.id AS id,
+                   program.name AS name,
+                   program.degree AS degree,
+                   program.catalogYear AS catalogYear,
+                   program.totalCredits AS totalCredits,
+                   program.sourceUrl AS sourceUrl,
+                   program.reviewStatus AS reviewStatus
+            ORDER BY program.id
             """;
 
     private final Driver driver;
@@ -42,4 +54,28 @@ public class CatalogRepository {
             });
         }
     }
+
+    public List<CatalogProgram> findPrograms() {
+        try (var session = driver.session(SessionConfig.forDatabase("neo4j"))) {
+            return session.run(FIND_PROGRAMS).list(record -> new CatalogProgram(
+                    record.get("id").asString(),
+                    record.get("name").asString(),
+                    record.get("degree").asString(),
+                    record.get("catalogYear").asString(),
+                    record.get("totalCredits").asInt(),
+                    record.get("sourceUrl").asString(),
+                    CatalogPrograms.ReviewStatus.valueOf(record.get("reviewStatus").asString())
+            ));
+        }
+    }
+
+    public record CatalogProgram(
+            String id,
+            String name,
+            String degree,
+            String catalogYear,
+            int totalCredits,
+            String sourceUrl,
+            CatalogPrograms.ReviewStatus reviewStatus
+    ) {}
 }
