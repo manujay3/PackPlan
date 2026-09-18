@@ -1,4 +1,4 @@
-package com.packplan;
+package com.packplan.catalog;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.DefaultApplicationArguments;

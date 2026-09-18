@@ -1,4 +1,4 @@
-package com.packplan;
+package com.packplan.catalog.model;
 
 import java.util.List;
 
@@ -11,10 +11,4 @@ public record CatalogPrograms(String catalogYear, List<Program> programs) {
             String sourceUrl,
             ReviewStatus reviewStatus
     ) {}
-
-    public enum ReviewStatus {
-        UNREVIEWED,
-        NEEDS_REVIEW,
-        REVIEWED
-    }
 }

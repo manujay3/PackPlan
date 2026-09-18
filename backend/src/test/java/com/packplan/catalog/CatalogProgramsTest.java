@@ -1,6 +1,8 @@
-package com.packplan;
+package com.packplan.catalog;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.packplan.catalog.model.CatalogPrograms;
+import com.packplan.catalog.model.ReviewStatus;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,7 +24,7 @@ class CatalogProgramsTest {
                             "economics-ba-2026-2027"
                     );
             assertThat(catalog.programs())
-                    .allMatch(program -> program.reviewStatus() == CatalogPrograms.ReviewStatus.REVIEWED);
+                    .allMatch(program -> program.reviewStatus() == ReviewStatus.REVIEWED);
         }
     }
 }

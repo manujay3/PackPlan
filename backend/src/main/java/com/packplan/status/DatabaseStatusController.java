@@ -1,4 +1,4 @@
-package com.packplan;
+package com.packplan.status;
 
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.SessionConfig;

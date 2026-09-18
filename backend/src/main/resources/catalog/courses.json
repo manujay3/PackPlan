@@ -1,0 +1,25 @@
+{
+  "catalogYear": "2026-2027",
+  "sourceUrl": "https://catalog.ncsu.edu/course-descriptions/csc/",
+  "sourceSha256": "d3a77e2e7f150f54d70f2865e657a74884460f7385c147029d71ca91ae5d7455",
+  "courses": [
+    {
+      "id": "csc-216-2026-2027",
+      "code": "CSC 216",
+      "subject": "CSC",
+      "number": "216",
+      "title": "Software Development Fundamentals",
+      "credits": 3,
+      "reviewStatus": "REVIEWED"
+    },
+    {
+      "id": "csc-217-2026-2027",
+      "code": "CSC 217",
+      "subject": "CSC",
+      "number": "217",
+      "title": "Software Development Fundamentals Lab",
+      "credits": 1,
+      "reviewStatus": "REVIEWED"
+    }
+  ]
+}

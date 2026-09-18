@@ -1,5 +1,7 @@
-package com.packplan;
+package com.packplan.catalog;
 
+import com.packplan.catalog.model.CatalogPrograms;
+import com.packplan.catalog.model.ReviewStatus;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.SessionConfig;
 import org.springframework.stereotype.Repository;
@@ -64,7 +66,7 @@ public class CatalogRepository {
                     record.get("catalogYear").asString(),
                     record.get("totalCredits").asInt(),
                     record.get("sourceUrl").asString(),
-                    CatalogPrograms.ReviewStatus.valueOf(record.get("reviewStatus").asString())
+                    ReviewStatus.valueOf(record.get("reviewStatus").asString())
             ));
         }
     }
@@ -76,6 +78,6 @@ public class CatalogRepository {
             String catalogYear,
             int totalCredits,
             String sourceUrl,
-            CatalogPrograms.ReviewStatus reviewStatus
+            ReviewStatus reviewStatus
     ) {}
 }

@@ -1,4 +1,4 @@
-package com.packplan;
+package com.packplan.status;
 
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.*;
