@@ -1,5 +1,7 @@
-package com.packplan;
+package com.packplan.catalog;
 
+import com.packplan.catalog.model.CatalogPrograms;
+import com.packplan.catalog.model.ReviewStatus;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.neo4j.driver.Driver;
@@ -40,7 +42,7 @@ class CatalogRepositoryTest {
                 "BS",
                 121,
                 "https://catalog.ncsu.edu/undergraduate/engineering/computer-science/computer-science-bs/",
-                CatalogPrograms.ReviewStatus.REVIEWED
+                ReviewStatus.REVIEWED
         );
 
         repository.saveProgram("2026-2027", program);

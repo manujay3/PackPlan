@@ -1,5 +1,6 @@
-package com.packplan;
+package com.packplan.catalog;
 
+import com.packplan.catalog.model.ReviewStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -22,7 +23,7 @@ class CatalogControllerTest {
                         "2026-2027",
                         121,
                         "https://catalog.ncsu.edu/undergraduate/engineering/computer-science/computer-science-bs/",
-                        CatalogPrograms.ReviewStatus.REVIEWED
+                        ReviewStatus.REVIEWED
                 )
         ));
         var mvc = MockMvcBuilders.standaloneSetup(new CatalogController(repository)).build();

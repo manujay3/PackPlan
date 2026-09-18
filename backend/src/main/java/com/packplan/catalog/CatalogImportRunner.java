@@ -1,4 +1,4 @@
-package com.packplan;
+package com.packplan.catalog;
 
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;

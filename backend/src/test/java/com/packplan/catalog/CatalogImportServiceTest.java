@@ -1,6 +1,7 @@
-package com.packplan;
+package com.packplan.catalog;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.packplan.catalog.model.CatalogPrograms;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 

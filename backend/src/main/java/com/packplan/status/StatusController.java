@@ -1,4 +1,4 @@
-package com.packplan;
+package com.packplan.status;
 
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
