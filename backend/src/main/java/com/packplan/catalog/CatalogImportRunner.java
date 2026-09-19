@@ -17,5 +17,6 @@ public class CatalogImportRunner implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments arguments) {
         importService.importPrograms();
+        importService.importCourses();
     }
 }
