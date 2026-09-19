@@ -8,7 +8,7 @@ import static org.mockito.Mockito.inOrder;
 
 class CatalogImportRunnerTest {
     @Test
-    void importsProgramsBeforeCourses() {
+    void importsProgramsThenCoursesThenRequirements() {
         var importService = mock(CatalogImportService.class);
         var runner = new CatalogImportRunner(importService);
 
@@ -17,5 +17,6 @@ class CatalogImportRunnerTest {
         var imports = inOrder(importService);
         imports.verify(importService).importPrograms();
         imports.verify(importService).importCourses();
+        imports.verify(importService).importRequirements();
     }
 }

@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnProperty(name = "packplan.catalog.import-programs", havingValue = "true")
+@ConditionalOnProperty(name = "packplan.catalog.import-reviewed-data", havingValue = "true")
 public class CatalogImportRunner implements ApplicationRunner {
     private final CatalogImportService importService;
 
@@ -18,5 +18,6 @@ public class CatalogImportRunner implements ApplicationRunner {
     public void run(ApplicationArguments arguments) {
         importService.importPrograms();
         importService.importCourses();
+        importService.importRequirements();
     }
 }

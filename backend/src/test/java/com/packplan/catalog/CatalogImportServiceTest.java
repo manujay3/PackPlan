@@ -3,6 +3,7 @@ package com.packplan.catalog;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.packplan.catalog.model.CatalogCourses;
 import com.packplan.catalog.model.CatalogPrograms;
+import com.packplan.catalog.model.CatalogRequirements;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -51,5 +52,29 @@ class CatalogImportServiceTest {
         assertThat(course.getAllValues())
                 .extracting(CatalogCourses.Course::id)
                 .containsExactly("csc-216-2026-2027", "csc-217-2026-2027");
+    }
+
+    @Test
+    void sendsTheReviewedRequirementToTheRepository() {
+        var repository = mock(CatalogRepository.class);
+        var service = new CatalogImportService(new ObjectMapper(), repository);
+
+        service.importRequirements();
+
+        var requirement = ArgumentCaptor.forClass(CatalogRequirements.Requirement.class);
+        verify(repository).saveRequirement(
+                org.mockito.ArgumentMatchers.eq("2026-2027"),
+                org.mockito.ArgumentMatchers.eq("computer-science-bs-2026-2027"),
+                org.mockito.ArgumentMatchers.eq(
+                        "https://catalog.ncsu.edu/undergraduate/engineering/computer-science/computer-science-bs/"
+                ),
+                org.mockito.ArgumentMatchers.eq(
+                        "ecbcce1c3dce6811c57431e9e86eec7f3131f32f76f59d3dc3b32b832e4da0f9"
+                ),
+                requirement.capture()
+        );
+        assertThat(requirement.getValue().id()).isEqualTo("cs-software-fundamentals-2026-2027");
+        assertThat(requirement.getValue().rule().type())
+                .isEqualTo(CatalogRequirements.RuleType.ALL_OF);
     }
 }

@@ -3,6 +3,7 @@ package com.packplan.catalog;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.packplan.catalog.model.CatalogCourses;
 import com.packplan.catalog.model.CatalogPrograms;
+import com.packplan.catalog.model.CatalogRequirements;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -36,15 +37,28 @@ public class CatalogImportService {
             var catalog = objectMapper.readValue(input, CatalogCourses.class);
 
             for (var course : catalog.courses()) {
-                repository.saveCourse(
-                        catalog.catalogYear(),
-                        catalog.sourceUrl(),
-                        catalog.sourceSha256(),
-                        course
-                );
+                repository.saveCourse(catalog.catalogYear(), catalog.sourceUrl(), catalog.sourceSha256(), course);
             }
         } catch (IOException exception) {
             throw new UncheckedIOException("Could not read the reviewed course catalog", exception);
+        }
+    }
+
+    public void importRequirements() {
+        try (var input = new ClassPathResource("catalog/requirements.json").getInputStream()) {
+            var catalog = objectMapper.readValue(input, CatalogRequirements.class);
+
+            for (var requirement : catalog.requirements()) {
+                repository.saveRequirement(
+                        catalog.catalogYear(),
+                        catalog.programId(),
+                        catalog.sourceUrl(),
+                        catalog.sourceSha256(),
+                        requirement
+                );
+            }
+        } catch (IOException exception) {
+            throw new UncheckedIOException("Could not read the reviewed requirement catalog", exception);
         }
     }
 }
