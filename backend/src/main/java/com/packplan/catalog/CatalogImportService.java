@@ -1,6 +1,7 @@
 package com.packplan.catalog;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.packplan.catalog.model.CatalogCourses;
 import com.packplan.catalog.model.CatalogPrograms;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,23 @@ public class CatalogImportService {
             }
         } catch (IOException exception) {
             throw new UncheckedIOException("Could not read the reviewed program catalog", exception);
+        }
+    }
+
+    public void importCourses() {
+        try (var input = new ClassPathResource("catalog/courses.json").getInputStream()) {
+            var catalog = objectMapper.readValue(input, CatalogCourses.class);
+
+            for (var course : catalog.courses()) {
+                repository.saveCourse(
+                        catalog.catalogYear(),
+                        catalog.sourceUrl(),
+                        catalog.sourceSha256(),
+                        course
+                );
+            }
+        } catch (IOException exception) {
+            throw new UncheckedIOException("Could not read the reviewed course catalog", exception);
         }
     }
 }
