@@ -53,7 +53,16 @@ This supersedes the standalone-container connection status above.
 
 - Verified the saved 2026-2027 catalog snapshots identify Computer Science BS as 121 total credits and Economics BA as 120 total credits.
 - Added reviewed JSON records for those program-level fields, typed Java records, an explicit import service, and Neo4j repository queries. Requirement and course rules remain unreviewed and unimplemented.
-- The import trigger is disabled by default and runs only when `packplan.catalog.import-programs=true` is explicitly supplied.
+- The import trigger is disabled by default and runs only when explicitly supplied (now named `packplan.catalog.import-reviewed-data=true`).
 - All eight backend tests passed with zero failures, errors, or skips.
 - Imported both programs into the live local Neo4j database, repeated the import, and confirmed exactly two `Program` nodes remained.
 - Started the backend normally and confirmed `GET /api/catalog/programs` returned both reviewed records from Neo4j.
+
+## September 19: first requirement graph
+
+- Added reviewed CSC 216 and CSC 217 course records with source URL, snapshot checksum, credits, and review status.
+- Added a reviewed four-credit Computer Science requirement whose `ALL_OF` rule requires both courses with minimum grade C.
+- The explicit `packplan.catalog.import-reviewed-data=true` trigger imports programs, then courses, then requirements; normal startup remains read-only.
+- Live Neo4j verification confirmed the program-to-requirement, requirement-to-rule, and two rule-to-course relationships with the expected minimum grades.
+- Repeated the live import and confirmed it remained at one `Requirement`, one `RuleGroup`, and four requirement-related relationships, with no duplicates.
+- Nested rule groups, prerequisites, corequisites, remaining degree requirements, and requirement evaluation are not implemented yet.

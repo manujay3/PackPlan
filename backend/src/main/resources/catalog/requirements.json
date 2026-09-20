@@ -1,0 +1,32 @@
+{
+  "catalogYear": "2026-2027",
+  "programId": "computer-science-bs-2026-2027",
+  "sourceUrl": "https://catalog.ncsu.edu/undergraduate/engineering/computer-science/computer-science-bs/",
+  "sourceSha256": "ecbcce1c3dce6811c57431e9e86eec7f3131f32f76f59d3dc3b32b832e4da0f9",
+  "requirements": [
+    {
+      "id": "cs-software-fundamentals-2026-2027",
+      "name": "Software Development Fundamentals and Lab",
+      "originalText": "CSC 216 & CSC 217 Software Development Fundamentals and Software Development Fundamentals Lab (4 credits). A grade of C or higher is required.",
+      "requiredCredits": 4,
+      "reviewStatus": "REVIEWED",
+      "evaluable": true,
+      "rule": {
+        "id": "cs-software-fundamentals-2026-2027-rule",
+        "type": "ALL_OF",
+        "children": [
+          {
+            "type": "COURSE",
+            "courseId": "csc-216-2026-2027",
+            "minimumGrade": "C"
+          },
+          {
+            "type": "COURSE",
+            "courseId": "csc-217-2026-2027",
+            "minimumGrade": "C"
+          }
+        ]
+      }
+    }
+  ]
+}
