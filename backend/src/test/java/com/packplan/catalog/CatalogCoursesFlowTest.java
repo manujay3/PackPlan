@@ -26,7 +26,7 @@ class CatalogCoursesFlowTest {
     }
 
     @Test
-    void importsBothCoursesWithSourceMetadata() throws Exception {
+    void importsAllCoursesWithSourceMetadata() throws Exception {
         var repository = mock(CatalogRepository.class);
         new CatalogImportService(new ObjectMapper(), repository).importCourses();
         var catalog = sample();
@@ -104,7 +104,7 @@ class CatalogCoursesFlowTest {
         mvc.perform(get("/api/catalog/courses"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Cache-Control", "no-store"))
-                .andExpect(jsonPath("$[0].code").value("CSC 216"))
+                .andExpect(jsonPath("$[0].code").value("CSC 116"))
                 .andExpect(jsonPath("$[0].credits").value(3))
                 .andExpect(jsonPath("$[0].catalogYear").value("2026-2027"))
                 .andExpect(jsonPath("$[0].sourceSha256").value(catalog.sourceSha256()))

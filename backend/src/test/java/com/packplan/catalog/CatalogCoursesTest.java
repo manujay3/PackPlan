@@ -17,13 +17,16 @@ class CatalogCoursesTest {
 
             assertThat(catalog.catalogYear()).isEqualTo("2026-2027");
             assertThat(catalog.sourceSha256()).hasSize(64);
-            assertThat(catalog.courses()).hasSize(2);
+            assertThat(catalog.courses()).hasSize(3);
             assertThat(catalog.courses())
                     .extracting(CatalogCourses.Course::code)
-                    .containsExactly("CSC 216", "CSC 217");
+                    .containsExactly("CSC 116", "CSC 216", "CSC 217");
             assertThat(catalog.courses())
                     .extracting(CatalogCourses.Course::credits)
-                    .containsExactly(3, 1);
+                    .containsExactly(3, 3, 1);
+            assertThat(catalog.courses().getFirst()).isEqualTo(new CatalogCourses.Course(
+                    "csc-116-2026-2027", "CSC 116", "CSC", "116",
+                    "Introduction to Computing - Java", 3, ReviewStatus.REVIEWED));
             assertThat(catalog.courses())
                     .allMatch(course -> course.reviewStatus() == ReviewStatus.REVIEWED);
         }

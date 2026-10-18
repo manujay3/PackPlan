@@ -57,7 +57,7 @@ $env:JAVA_HOME = 'C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot'
 
 After startup completes, stop the process with Ctrl+C. Repeating the import updates the same nodes rather than creating duplicates. With the backend running normally, `GET http://localhost:8080/api/catalog/programs` returns the imported programs. `catalogReady` remains `false` because program requirements have not been modeled or reviewed.
 
-Course metadata for CSC 216 and CSC 217 is also available in `backend/src/main/resources/catalog/courses.json`. Import it explicitly with `--packplan.catalog.import-courses=true`; this flag is independent of the program import flag and defaults to false. Each course is merged by its year-specific ID, preserving its catalog year, source URL, source checksum, and review status. Repeating the import updates the same course nodes.
+Course metadata for CSC 116, CSC 216, and CSC 217 is also available in `backend/src/main/resources/catalog/courses.json`. Import it explicitly with `--packplan.catalog.import-courses=true`; this flag is independent of the program import flag and defaults to false. Each course is merged by its year-specific ID, preserving its catalog year, source URL, source checksum, and review status. Repeating the import updates the same course nodes.
 
 With Neo4j running, use Java 21 and Maven on macOS/Linux:
 
@@ -139,6 +139,17 @@ The browser uses one origin, so no permissive CORS configuration is needed. Vue 
 3. Run `docker compose stop backend`, then click **Check connection again**. Expect **Connection unavailable** with instructions to retry.
 4. Run `docker compose start backend`, wait for startup, and retry. Expect **Backend connected**.
 5. Explain the request path and why a connected API does not imply a verified catalog.
+
+### Draft course rules
+
+CSC 216 has a structured draft enrollment rule with source provenance and
+`NEEDS_REVIEW` status. An explicit `--packplan.catalog.import-draft-rules=true`
+flag saves it to Neo4j; it defaults to false. When combined with the course
+import flag, course metadata imports first. The nested expression is preserved
+as JSON on a `CourseRule` node linked to its course. It is not yet exposed by
+the API or used for eligibility checks, and `catalogReady` remains false.
+See [rule review and live verification](docs/course-rule-review.md) for the
+unresolved timing question, import instructions, and repeatable live check.
 
 ## Tests
 

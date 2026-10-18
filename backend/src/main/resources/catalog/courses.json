@@ -4,6 +4,15 @@
   "sourceSha256": "d3a77e2e7f150f54d70f2865e657a74884460f7385c147029d71ca91ae5d7455",
   "courses": [
     {
+      "id": "csc-116-2026-2027",
+      "code": "CSC 116",
+      "subject": "CSC",
+      "number": "116",
+      "title": "Introduction to Computing - Java",
+      "credits": 3,
+      "reviewStatus": "REVIEWED"
+    },
+    {
       "id": "csc-216-2026-2027",
       "code": "CSC 216",
       "subject": "CSC",
