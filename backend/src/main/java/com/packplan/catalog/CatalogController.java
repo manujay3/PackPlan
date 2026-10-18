@@ -21,4 +21,11 @@ public class CatalogController {
                 .cacheControl(CacheControl.noStore())
                 .body(repository.findPrograms());
     }
+
+    @GetMapping("/api/catalog/courses")
+    public ResponseEntity<List<CatalogRepository.CatalogCourse>> courses() {
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .body(repository.findCourses());
+    }
 }

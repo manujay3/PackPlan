@@ -1,6 +1,7 @@
 package com.packplan.catalog;
 
 import com.packplan.catalog.model.CatalogPrograms;
+import com.packplan.catalog.model.CatalogCourses;
 import com.packplan.catalog.model.ReviewStatus;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.SessionConfig;
@@ -30,6 +31,28 @@ public class CatalogRepository {
                    program.sourceUrl AS sourceUrl,
                    program.reviewStatus AS reviewStatus
             ORDER BY program.id
+            """;
+
+    private static final String SAVE_COURSE = """
+            MERGE (course:Course {id: $id})
+            SET course.code = $code,
+                course.subject = $subject,
+                course.number = $number,
+                course.title = $title,
+                course.credits = $credits,
+                course.catalogYear = $catalogYear,
+                course.sourceUrl = $sourceUrl,
+                course.sourceSha256 = $sourceSha256,
+                course.reviewStatus = $reviewStatus
+            """;
+    private static final String FIND_COURSES = """
+            MATCH (course:Course)
+            RETURN course.id AS id, course.code AS code,
+                   course.subject AS subject, course.number AS number,
+                   course.title AS title, course.credits AS credits,
+                   course.catalogYear AS catalogYear, course.sourceUrl AS sourceUrl,
+                   course.sourceSha256 AS sourceSha256, course.reviewStatus AS reviewStatus
+            ORDER BY course.id
             """;
 
     private final Driver driver;
@@ -70,6 +93,50 @@ public class CatalogRepository {
             ));
         }
     }
+
+    public void saveCourse(CatalogCourses catalog, CatalogCourses.Course course) {
+        var parameters = Map.<String, Object>of(
+                "id", course.id(),
+                "code", course.code(),
+                "subject", course.subject(),
+                "number", course.number(),
+                "title", course.title(),
+                "credits", course.credits(),
+                "catalogYear", catalog.catalogYear(),
+                "sourceUrl", catalog.sourceUrl(),
+                "sourceSha256", catalog.sourceSha256(),
+                "reviewStatus", course.reviewStatus().name()
+        );
+        try (var session = driver.session(SessionConfig.forDatabase("neo4j"))) {
+            session.executeWrite(transaction -> {
+                transaction.run(SAVE_COURSE, parameters).consume();
+                return null;
+            });
+        }
+    }
+
+    public List<CatalogCourse> findCourses() {
+        try (var session = driver.session(SessionConfig.forDatabase("neo4j"))) {
+            return session.run(FIND_COURSES).list(record -> new CatalogCourse(
+                    record.get("id").asString(),
+                    record.get("code").asString(),
+                    record.get("subject").asString(),
+                    record.get("number").asString(),
+                    record.get("title").asString(),
+                    record.get("credits").asInt(),
+                    record.get("catalogYear").asString(),
+                    record.get("sourceUrl").asString(),
+                    record.get("sourceSha256").asString(),
+                    ReviewStatus.valueOf(record.get("reviewStatus").asString())
+            ));
+        }
+    }
+
+    public record CatalogCourse(
+            String id, String code, String subject, String number, String title,
+            int credits, String catalogYear, String sourceUrl, String sourceSha256,
+            ReviewStatus reviewStatus
+    ) {}
 
     public record CatalogProgram(
             String id,

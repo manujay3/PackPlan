@@ -45,7 +45,7 @@ Ports bind only to the local machine. These containers are for local development
 
 ### Neo4j configuration
 
-Neo4j Community Edition is a separate Compose service. Spring Boot connects with the official Java driver, auto-configured by Spring Boot. No courses have been imported. `/api/status` checks the API itself; `/api/database/status` runs a read-only query and returns `{"status":"UP"}` or HTTP 503 with `{"status":"DOWN"}`. Driver details are not sent to clients. The overview displays these two checks separately.
+Neo4j Community Edition is a separate Compose service. Spring Boot connects with the official Java driver, auto-configured by Spring Boot. Course imports are opt-in; normal startup does not populate the database. `/api/status` checks the API itself; `/api/database/status` runs a read-only query and returns `{"status":"UP"}` or HTTP 503 with `{"status":"DOWN"}`. Driver details are not sent to clients. The overview displays these two checks separately.
 
 Two reviewed program-level records are available for the 2026-2027 catalog: Computer Science BS and Economics BA. They include program identity, total credits, source URL, and review status; course and requirement rules are not imported yet. Normal backend startup does not modify catalog data. To explicitly import or update these idempotent `Program` nodes during local development, start Neo4j and run:
 
@@ -56,6 +56,16 @@ $env:JAVA_HOME = 'C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot'
 ```
 
 After startup completes, stop the process with Ctrl+C. Repeating the import updates the same nodes rather than creating duplicates. With the backend running normally, `GET http://localhost:8080/api/catalog/programs` returns the imported programs. `catalogReady` remains `false` because program requirements have not been modeled or reviewed.
+
+Course metadata for CSC 216 and CSC 217 is also available in `backend/src/main/resources/catalog/courses.json`. Import it explicitly with `--packplan.catalog.import-courses=true`; this flag is independent of the program import flag and defaults to false. Each course is merged by its year-specific ID, preserving its catalog year, source URL, source checksum, and review status. Repeating the import updates the same course nodes.
+
+With Neo4j running, use Java 21 and Maven on macOS/Linux:
+
+```sh
+mvn -f backend/pom.xml spring-boot:run -Dspring-boot.run.arguments=--packplan.catalog.import-courses=true
+```
+
+On Windows, use `backend/mvnw.cmd` from the backend directory with the same Spring Boot argument. After the import, restart normally without the flag. `GET /api/catalog/courses` returns courses ordered by ID, or an empty array before import. Course metadata does not include prerequisite or degree requirement rules, so `catalogReady` remains `false`.
 
 Compose waits for Neo4j authentication/query readiness, then backend database readiness, then starts the frontend. Health checks continue after startup; an unhealthy service is reported but is not automatically restarted. Configuration follows [Spring Boot's Neo4j documentation](https://docs.spring.io/spring-boot/3.5/reference/data/nosql.html#data.nosql.neo4j).
 

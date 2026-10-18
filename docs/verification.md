@@ -57,3 +57,13 @@ This supersedes the standalone-container connection status above.
 - All eight backend tests passed with zero failures, errors, or skips.
 - Imported both programs into the live local Neo4j database, repeated the import, and confirmed exactly two `Program` nodes remained.
 - Started the backend normally and confirmed `GET /api/catalog/programs` returned both reviewed records from Neo4j.
+
+## October 17: live course import verification (macOS)
+
+- Packaged the backend with Java 21 and Maven 3.9.16. The preceding implementation run passed all 13 backend tests; this packaging run skipped rerunning them.
+- Started Docker Desktop and the Compose Neo4j `2026.08.1` service with a new local named volume.
+- Started the backend with `--packplan.catalog.import-courses=true`. `GET /api/catalog/courses` returned CSC 216 (3 credits) and CSC 217 (1 credit), including catalog year, source URL, source SHA-256, and review status matching the bundled JSON.
+- Stopped the backend, repeated the explicit import, and queried Neo4j directly: `MATCH (c:Course) RETURN c.id AS id, count(*) AS copies ORDER BY id;`. Exactly two rows were returned, with one node per course ID.
+- Restarted the backend without the import flag. Both courses remained available through the API; `/api/database/status` returned `UP`, and `/api/status` retained `catalogReady: false`.
+- Left Neo4j and the normal backend running on localhost (backend port 8080). The frontend was not started. This fresh volume contains the imported courses; program import was not run in this verification.
+- Sandbox restrictions required approved Docker access and localhost networking. No prerequisite or corequisite rules were added or verified in this check.
