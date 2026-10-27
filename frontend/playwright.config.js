@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: './tests',
+  testIgnore: '**/*.test.js',
   fullyParallel: true,
   workers: 2,
   use: { baseURL: 'http://127.0.0.1:5173', channel: 'chrome', launchOptions: { timeout: 30000 }, screenshot: 'only-on-failure', trace: 'retain-on-failure' },

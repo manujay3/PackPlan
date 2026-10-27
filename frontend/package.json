@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test:e2e": "playwright test",
+    "test:unit": "node --test tests/*.test.js",
     "test:e2e:live": "PACKPLAN_LIVE_E2E=true playwright test tests/eligibility-live.spec.js --project=desktop"
   },
   "dependencies": {

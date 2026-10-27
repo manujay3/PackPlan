@@ -146,11 +146,15 @@ the target clears the previous result and cancels any pending check. Requests
 time out after eight seconds; errors retain the entered evidence for retry.
 Empty catalogs, unavailable services, missing rules, and malformed responses
 are handled explicitly. Evidence is held in page memory only and clears on
-navigation or reload. It is sent to the API for evaluation but is not persisted.
+navigation or reload. It is sent to the API for evaluation but is not persisted
+by the backend. On the semester screen, explicit [saved alternatives](semester-eligibility.md#saved-alternatives)
+retain inputs in this browser; eligibility verdicts are not saved.
 
 The screen uses the existing sample catalog and exact course IDs. It cannot
 enter courses absent from that catalog, import transcripts, save a profile,
 or validate a complete plan.
+The semester screen separately supports two local alternatives, including
+retaining exact IDs from older saves when a course is no longer in the catalog.
 
 ## Browser verification — October 26, 2026
 

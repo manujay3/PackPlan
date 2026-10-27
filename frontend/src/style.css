@@ -63,6 +63,19 @@ legend { font-weight: 750; padding: 0 10px 0 0; font-size: 17px; }
 .semester-course-result, .credit-load { border-top: 1px solid #e1ddd7; padding-top: 16px; margin-top: 24px; }
 .semester-course-result h3, .credit-load h3 { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .credit-cap-input { display: block; width: 100%; min-height: 46px; border: 1px solid #99938b; border-radius: 6px; padding: 10px; font: inherit; color: #242424; background: white; }
+.alternatives-panel { margin-top: 24px; }
+.alternatives-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; margin: 20px 0; }
+.alternative-slot { min-width: 0; border: 1px solid #e1ddd7; border-radius: 8px; padding: 20px; overflow-wrap: anywhere; }
+.alternative-slot h3 { margin-top: 0; }
+.alternative-slot h4 { margin-bottom: 8px; }
+.alternative-slot label { display: block; font-size: 14px; font-weight: 650; margin-bottom: 6px; }
+.alternative-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 16px 0; }
+.alternative-slot ul { padding-left: 20px; }
+.alternative-slot .root-conditions { padding-left: 0; }
+.alternative-slot details { margin-top: 16px; }
+.alternative-slot summary { cursor: pointer; font-weight: 650; }
+summary:focus-visible { outline: 3px solid #195fa0; outline-offset: 5px; }
+@media (max-width: 720px) { .alternatives-grid { grid-template-columns: 1fr; } }
 @media (max-width: 900px) { .eligibility-layout { grid-template-columns: 1fr; } }
 @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } .header, footer { flex-wrap: wrap; } .hero { padding-top: 36px; } .card { padding: 22px; } main { padding-inline: 20px; } }
 @media (max-width: 420px) { .attempt-fields { grid-template-columns: 1fr; } nav { gap: 16px; flex-wrap: wrap; } }

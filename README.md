@@ -175,6 +175,10 @@ See [evidence format, examples, and evaluation behavior](docs/eligibility.md).
 Open **Check a course** at `/eligibility` to enter completed attempts and
 same-term enrollment, then view the rule result and condition explanations.
 Entries clear on navigation or reload; editing evidence clears stale results.
+On the semester screen, you can explicitly save two named alternatives in
+this browser, reload their inputs, and compare fresh API results. Saves include
+entered grades and the credit cap; each can be replaced or deleted. Eligibility
+verdicts are never saved. See [saved alternatives](docs/semester-eligibility.md#saved-alternatives).
 Choose **Check a semester** at `/semester` to evaluate every proposed course
 together. `POST /api/semesters/eligibility` returns an overall result plus each
 course's explanation. Any known blocker blocks the semester; missing rules or
@@ -201,6 +205,7 @@ From `frontend`, `npm run test:e2e` runs the eligibility screen's desktop and
 mobile browser checks with mocked APIs (Google Chrome required). The opt-in
 `npm run test:e2e:live` command on macOS/Linux checks the actual backend and
 imported Neo4j sample. See [browser verification and PowerShell instructions](docs/eligibility.md#browser-verification--october-26-2026).
+`npm run test:unit` checks saved-alternative storage behavior without a browser.
 
 ## Curriculum scope and data
 

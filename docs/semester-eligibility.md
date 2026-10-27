@@ -3,7 +3,8 @@
 Open `/semester` or choose **Check a semester**. Enter prior completed attempts
 and select every proposed course for one target term. The screen reuses the
 course evidence form and condition explanations. Editing evidence or selections
-clears the result; leaving or reloading clears all entries. Nothing is saved.
+clears the result; leaving or reloading clears the current draft. You can
+explicitly save two alternatives in this browser and load them again.
 
 `POST /api/semesters/eligibility` accepts:
 
@@ -64,7 +65,8 @@ The form displays a catalog preview; the result shows the server's credit
 check. Changing the cap invalidates the previous result and cancels a pending
 check, just like changing courses or grades. Caps are required, positive JSON
 integers; fractions, strings, booleans, missing/null values, and values outside
-the API integer range are rejected. The cap is not persisted.
+the API integer range are rejected. The API does not persist the cap; explicit
+browser saves include it with the other evidence.
 
 ## Examples and scope
 
@@ -135,3 +137,63 @@ credit check with a cap of 4. Missing rules and strict prerequisites still
 produce review/blocking results with a larger cap. Imports were disabled;
 no evidence or catalog changes were saved. Vite, the updated backend, and
 Neo4j remain running; application images were not rebuilt.
+
+## Saved alternatives
+
+The **Save and compare semesters** section holds two named slots, A and B.
+**Save current as A/B** copies a valid draft's proposed course IDs, completed
+attempts (including grades and earned-credit flags), and credit cap. **Replace
+A/B** overwrites only that slot with the current valid draft. Each save shows
+its local save time, exact catalog year where available, course selection,
+prior attempts, and cap. Different selections are listed as courses unique to
+each alternative.
+
+**Load A/B** replaces the current form inputs and clears any previous result;
+it does not restore an eligibility verdict. Courses absent from the current
+catalog remain visible with their exact IDs, rather than being dropped or
+mapped to another year. Such selections show an unknown credit preview and
+can be unchecked. Completed attempts with unavailable IDs are also retained.
+
+**Compare saved alternatives** sends each saved evidence snapshot to the
+current semester API. It shows separate credit loads, overall results, and
+expandable course-condition explanations. A failed request stays an error for
+that alternative, even if the other succeeds. Retrying rechecks both. Results
+and checked times stay in memory only. Changing, deleting, or loading a save,
+or receiving a save change from another tab, cancels and clears the comparison.
+Editing the current unsaved form does not alter the saved comparison evidence.
+
+The storage key is `packplan.semester-alternatives.v1`, with a versioned pair
+of slots. Saved records contain inputs and save time, never API results.
+Data stays in this browser/origin, including the entered grades; it is not an
+account, cloud sync, or server-side profile. **Delete A/B** removes a slot;
+deleting the last slot removes the feature key. Other browser data is untouched.
+Navigating away does not auto-save the current draft.
+
+Saved evidence is validated on read. Incompatible or corrupt data is left
+untouched and reported; **Clear saved alternatives** explicitly removes that
+feature key. Storage failures do not claim a successful save or discard the
+current form. Writes read the latest saved pair first and other-tab changes
+refresh the saved section without replacing the current draft. Simultaneous
+tab writes still use the browser's last-write-wins behavior. Comparisons are
+independent API reads, not a shared transactional catalog snapshot.
+
+## Saved-alternative verification — October 26, 2026
+
+The production build, seven storage unit tests (`npm run test:unit`), and all
+38 desktop/mobile browser checks passed. Storage tests cover evidence-only
+snapshots, replacement, retaining the other slot, quota/read errors, corrupt
+data, invalid evidence, unavailable course IDs, and deletion isolation. Browser
+checks add reload/load persistence, fresh comparison payloads, separate results,
+partial failure/retry, corrupt-data recovery, failed-write preservation,
+unavailable-course retention, and cancellation after another-tab changes.
+The final alternative-specific checks also passed at both viewport sizes.
+
+All three opt-in live browser checks passed through Vite, Spring Boot, and
+Neo4j. The new check saves the real CSC 216/217 pair with caps of 4 and 3,
+compares satisfied versus blocked results, reloads without cached verdicts,
+loads and rechecks a saved draft, and deletes both saves. Browser checks use
+isolated test storage and leave no demo saves there. No backend code changed
+for this feature and no catalog data was written. The local application remains
+running; container images were not rebuilt. Desktop and mobile comparison
+layouts were visually inspected. The ordinary browser command now skips six
+live instances (three scenarios at each viewport).
