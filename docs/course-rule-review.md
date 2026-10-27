@@ -64,6 +64,9 @@ is not checked by this service.
 to import the CSC 216 rule with its `REVIEWED` status. The legacy flag and
 resource path retain their draft names for compatibility. The equivalent
 environment variable is `PACKPLAN_CATALOG_IMPORT_DRAFT_RULES`.
+The flag now imports all three sample rules. See the
+[CSC 116/217 review](sample-course-rules.md) for the additional records and
+CSC 116's unresolved conditions.
 
 With Neo4j running, from the backend directory in PowerShell:
 

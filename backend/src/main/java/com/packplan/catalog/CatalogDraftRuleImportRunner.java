@@ -32,6 +32,8 @@ public class CatalogDraftRuleImportRunner implements ApplicationRunner {
         } catch (IOException exception) {
             throw new UncheckedIOException("Could not read course catalog for draft rule import", exception);
         }
-        importService.importRule(new ClassPathResource("catalog/drafts/csc-216-rule.json"), catalog);
+        for (var number : new String[] {"116", "216", "217"}) {
+            importService.importRule(new ClassPathResource("catalog/drafts/csc-" + number + "-rule.json"), catalog);
+        }
     }
 }

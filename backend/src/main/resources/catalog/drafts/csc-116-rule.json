@@ -1,0 +1,24 @@
+{
+  "courseId": "csc-116-2026-2027",
+  "catalogYear": "2026-2027",
+  "sourceUrl": "https://catalog.ncsu.edu/course-descriptions/csc/",
+  "sourceSha256": "d3a77e2e7f150f54d70f2865e657a74884460f7385c147029d71ca91ae5d7455",
+  "retrievedAt": "2026-10-27T01:42:05Z",
+  "reviewStatus": "NEEDS_REVIEW",
+  "originalText": "Most seats reserved for Computer Science majors. Co-requisite: E 115 or COS 100 and MA 121 or MA 131 or MA 141",
+  "expression": {
+    "type": "allOf",
+    "children": [
+      {
+        "type": "unsupported",
+        "originalText": "Co-requisite: E 115 or COS 100 and MA 121 or MA 131 or MA 141",
+        "reason": "Requires (E 115 or COS 100) AND (MA 121 or MA 131 or MA 141), completed before or concurrently. These five courses are outside the bundled catalog; import and review their metadata before creating structured course references. Requires manual review."
+      },
+      {
+        "type": "unsupported",
+        "originalText": "Most seats reserved for Computer Science majors.",
+        "reason": "Seat reservations depend on program and section availability, which this sample does not model. This is not a blanket exclusion of other majors. Requires manual review."
+      }
+    ]
+  }
+}

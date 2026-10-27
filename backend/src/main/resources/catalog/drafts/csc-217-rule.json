@@ -1,0 +1,26 @@
+{
+  "courseId": "csc-217-2026-2027",
+  "catalogYear": "2026-2027",
+  "sourceUrl": "https://catalog.ncsu.edu/course-descriptions/csc/",
+  "sourceSha256": "d3a77e2e7f150f54d70f2865e657a74884460f7385c147029d71ca91ae5d7455",
+  "retrievedAt": "2026-10-27T01:42:05Z",
+  "reviewStatus": "REVIEWED",
+  "originalText": "Prerequisite: CSC 116 with a C or better; Corequisites: CSC 216",
+  "expression": {
+    "type": "allOf",
+    "children": [
+      {
+        "type": "course",
+        "courseId": "csc-116-2026-2027",
+        "timing": "COMPLETED_BEFORE",
+        "minimumGrade": "C"
+      },
+      {
+        "type": "course",
+        "courseId": "csc-216-2026-2027",
+        "timing": "COMPLETED_BEFORE_OR_CONCURRENT",
+        "minimumGrade": "NOT_SPECIFIED"
+      }
+    ]
+  }
+}

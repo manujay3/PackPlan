@@ -3,6 +3,8 @@ package com.packplan.catalog;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.packplan.catalog.model.CourseRule;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,10 +24,11 @@ class CourseRuleControllerTest {
     @Autowired ObjectMapper mapper;
     @MockitoBean CourseRuleRepository repository;
 
-    @Test
-    void returnsStoredRuleWithProvenanceAndStructuredConditions() throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = {"116", "216", "217"})
+    void returnsStoredRuleWithProvenanceAndStructuredConditions(String number) throws Exception {
         String json;
-        try (var input = getClass().getResourceAsStream("/catalog/drafts/csc-216-rule.json")) {
+        try (var input = getClass().getResourceAsStream("/catalog/drafts/csc-" + number + "-rule.json")) {
             json = new String(input.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
         }
         var rule = mapper.readValue(json, CourseRule.class);

@@ -36,10 +36,13 @@ class CatalogDraftRuleImportRunnerTest {
         contextRunner.withPropertyValues("packplan.catalog.import-draft-rules=true").run(context -> {
             assertThat(context).doesNotHaveBean(CatalogCourseImportRunner.class);
             context.getBean(CatalogDraftRuleImportRunner.class).run(new DefaultApplicationArguments());
-            verify(rules).importRule(eq(new ClassPathResource("catalog/drafts/csc-216-rule.json")),
+            for (var number : new String[] {"116", "216", "217"}) {
+                verify(rules).importRule(eq(new ClassPathResource("catalog/drafts/csc-" + number + "-rule.json")),
                     argThat(catalog -> catalog.catalogYear().equals("2026-2027")
                             && catalog.courses().stream().map(CatalogCourses.Course::code).toList()
                             .containsAll(java.util.List.of("CSC 116", "CSC 216", "CSC 217"))));
+            }
+            verifyNoMoreInteractions(rules);
             verifyNoInteractions(courses);
         });
     }
@@ -52,7 +55,10 @@ class CatalogDraftRuleImportRunnerTest {
             for (var runner : runners) runner.run(new DefaultApplicationArguments());
             var order = inOrder(courses, rules);
             order.verify(courses).importCourses();
-            order.verify(rules).importRule(any(), any());
+            for (var number : new String[] {"116", "216", "217"}) {
+                order.verify(rules).importRule(eq(new ClassPathResource("catalog/drafts/csc-" + number + "-rule.json")), any());
+            }
+            order.verifyNoMoreInteractions();
         });
     }
 

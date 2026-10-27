@@ -140,7 +140,7 @@ The browser uses one origin, so no permissive CORS configuration is needed. Vue 
 4. Run `docker compose start backend`, wait for startup, and retry. Expect **Backend connected**.
 5. Explain the request path and why a connected API does not imply a verified catalog.
 
-### Sample course rule
+### Sample course rules
 
 CSC 216 has a structured enrollment rule with source provenance and
 `REVIEWED` status. The Fall 2026 syllabus confirms CSC 217 may be completed
@@ -154,6 +154,13 @@ disable caching. A course without a stored rule (or an unknown course ID)
 returns HTTP 404; this means no rule is available, not that enrollment is
 unrestricted. The endpoint reads the database and does not import bundled
 data. Rules are not yet used for eligibility checks, and `catalogReady` remains false.
+The same explicit rule import flag also imports CSC 116 and CSC 217 rules.
+CSC 217 is reviewed: CSC 116 with C or better, plus CSC 216 completed before
+or concurrently. CSC 116 remains `NEEDS_REVIEW`: its corequisite alternatives
+and seat-reservation note are preserved as `unsupported` checks because the
+five referenced courses and section reservations are outside this sample.
+Those checks require manual review and must not be treated as satisfied.
+See [CSC 116/217 source review and limitations](docs/sample-course-rules.md).
 See [rule review and live verification](docs/course-rule-review.md) for the
 timing review evidence, import instructions, and repeatable live check.
 
