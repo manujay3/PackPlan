@@ -27,7 +27,7 @@ class CourseRuleLoaderTest {
     void loadsDraftWithoutPromotingReviewStatus() throws Exception {
         var rule = loader.load(draft, catalog());
         assertThat(rule.courseId()).isEqualTo("csc-216-2026-2027");
-        assertThat(rule.reviewStatus()).isEqualTo(ReviewStatus.NEEDS_REVIEW);
+        assertThat(rule.reviewStatus()).isEqualTo(ReviewStatus.REVIEWED);
     }
 
     @Test

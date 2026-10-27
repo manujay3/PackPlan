@@ -5,7 +5,7 @@
   "sourceSha256": "d3a77e2e7f150f54d70f2865e657a74884460f7385c147029d71ca91ae5d7455",
   "retrievedAt": "2026-10-18T02:58:19Z",
   "originalText": "Prerequisite: CSC 116 with a grade of C or better; Corequisite: CSC 217",
-  "reviewStatus": "NEEDS_REVIEW",
+  "reviewStatus": "REVIEWED",
   "expression": {
     "type": "allOf",
     "children": [

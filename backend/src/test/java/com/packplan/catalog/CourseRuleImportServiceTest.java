@@ -26,11 +26,11 @@ class CourseRuleImportServiceTest {
     }
 
     @Test
-    void writesOnlyWhenExplicitlyInvokedAndPreservesDraftStatus() throws Exception {
+    void writesOnlyWhenExplicitlyInvokedAndPreservesReviewedStatus() throws Exception {
         verifyNoInteractions(repository);
         var rule = service.importRule(source, catalog());
         assertThat(rule.courseId()).isEqualTo("csc-216-2026-2027");
-        assertThat(rule.reviewStatus()).isEqualTo(ReviewStatus.NEEDS_REVIEW);
+        assertThat(rule.reviewStatus()).isEqualTo(ReviewStatus.REVIEWED);
         verify(repository).save(rule);
         verifyNoMoreInteractions(repository);
     }

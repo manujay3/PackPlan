@@ -1,6 +1,6 @@
-# CSC 216 draft rule review
+# CSC 216 rule review
 
-Draft: `backend/src/main/resources/catalog/drafts/csc-216-rule.json`.
+Rule (legacy draft resource path): `backend/src/main/resources/catalog/drafts/csc-216-rule.json`.
 
 The official [CSC course page](https://catalog.ncsu.edu/course-descriptions/csc/)
 was retrieved at 2026-10-18T02:58:19Z and identified the 2026-2027 catalog.
@@ -8,25 +8,43 @@ The JSON checksum is SHA-256 of the downloaded HTML response bytes. Original
 rule text preserves the wording with HTML removed and nonbreaking spaces
 normalized to ordinary spaces.
 
-The draft requires CSC 116 completed beforehand with at least C, AND CSC 217
+The reviewed rule requires CSC 116 completed beforehand with at least C, AND CSC 217
 completed beforehand or taken concurrently. No minimum grade is specified
 for CSC 217 in this course entry; this does not imply failing grades qualify.
 
-## Why NEEDS_REVIEW
+## Timing review resolved — October 21, 2026
 
-The [catalog definition](https://catalog.ncsu.edu/course-descriptions/) allows
-previous completion of corequisites. This is the basis for the draft timing.
+The [Fall 2026 CSC 216 syllabus](https://courses.csc.ncsu.edu/csc216/syllabi/F26_CSC216_Syllabus/)
+explicitly exempts students who already have CSC 217 credit from enrolling in
+the lab again. Its lab section also confirms that students who have passed
+CSC 217 need not repeat it. This course-specific evidence resolves the timing
+question for the 2026-2027 sample: CSC 217 may be completed before CSC 216 or
+taken concurrently. The normalized expression is unchanged; its review status
+is now `REVIEWED`.
+
+The [CSC advising FAQ](https://my.csc.ncsu.edu/undergrad-advising/advising-faq/)
+also permits prior completion or concurrent enrollment for corequisites.
 The [registrar requirement-groups guide](https://registrar.ncsu.edu/wp-content/uploads/sites/486/2025/07/Requirement-Groups.pdf)
-instead describes corequisites as concurrent. Confirm how this distinction
-applies to CSC 216/217 before marking the rule reviewed.
+gives a generic concurrent-only description; the current course syllabus
+provides the explicit prior-credit exception for CSC 216/217. All three sources
+and the [2026-2027 CSC catalog entry](https://catalog.ncsu.edu/course-descriptions/csc/)
+were checked on October 21, 2026. The rule retains the original catalog retrieval
+time, checksum, and wording; these fields describe that original source,
+not the supplementary review sources linked here.
+
+`NOT_SPECIFIED` for the CSC 217 minimum grade means the enrollment entry does
+not state a threshold. Prior completion must represent earned credit, not a
+failed or withdrawn attempt. The advising FAQ separately lists a C minimum in
+CSC 217 for graduation; that program requirement is not modeled by this
+course enrollment rule. Transfer equivalencies, credit-by-exam, overrides,
+and other exceptions remain outside this sample.
 
 CSC 116 metadata is now included in the bundled course sample: Introduction
 to Computing - Java, 3 credits, in the 2026-2027 catalog. Its identity, title,
 and credits were checked against the CSC source page and the local snapshot,
 whose checksum matches the bundled source checksum. This metadata review
 does not cover CSC 116's own enrollment rules, which remain unmodeled.
-The CSC 216 draft's course references now exist in the bundled sample;
-the corequisite timing review above remains unresolved.
+The CSC 216 rule's course references now exist in the bundled sample.
 
 `CourseRuleLoader.load(resource, catalog)` reads a draft and validates its
 course references before returning it, preserving its review status. Tests
@@ -43,7 +61,8 @@ is not checked by this service.
 ## Explicit local import
 
 `packplan.catalog.import-draft-rules` defaults to false. Enable it explicitly
-to import the CSC 216 draft with its `NEEDS_REVIEW` status. The equivalent
+to import the CSC 216 rule with its `REVIEWED` status. The legacy flag and
+resource path retain their draft names for compatibility. The equivalent
 environment variable is `PACKPLAN_CATALOG_IMPORT_DRAFT_RULES`.
 
 With Neo4j running, from the backend directory in PowerShell:
@@ -82,3 +101,20 @@ Ordinary `mvn test` excludes the `IT` class; it also requires the explicit
 system property above. This checks sequential imports, not concurrent import
 uniqueness. Existing Docker application services were left running and
 confirmed healthy; their images were not rebuilt for this check.
+
+## Reviewed rule verification — October 26, 2026
+
+All 36 backend tests passed using Java 21 on macOS. Mockito's agent attachment
+required running the tests outside the filesystem sandbox.
+
+With the local Compose Neo4j service healthy, `CourseRuleImportIT` passed with
+`-Dtest=CourseRuleImportIT -Dpackplan.live-import=true`. It imported the sample
+courses and reviewed rule twice, then started with imports disabled. Each pass
+verified the complete rule against the bundled JSON, including `REVIEWED`
+status, and confirmed exactly one rule node and one `HAS_RULE` relationship.
+The local database now stores the reviewed rule. Neo4j was left running;
+application images were not rebuilt. This verifies sequential imports only.
+
+Catalog readiness remains false: other course rules and program requirements
+are incomplete. The next implementation step is to expose persisted course
+rules through the catalog API.

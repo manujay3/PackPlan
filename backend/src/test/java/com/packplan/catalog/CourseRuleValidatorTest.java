@@ -31,7 +31,7 @@ class CourseRuleValidatorTest {
         try (var input = getClass().getResourceAsStream("/catalog/drafts/csc-216-rule.json")) {
             var draft = new ObjectMapper().readValue(input, CourseRule.class);
             validator.validateReferences(draft, catalog());
-            assertThat(draft.reviewStatus()).isEqualTo(ReviewStatus.NEEDS_REVIEW);
+            assertThat(draft.reviewStatus()).isEqualTo(ReviewStatus.REVIEWED);
         }
     }
 

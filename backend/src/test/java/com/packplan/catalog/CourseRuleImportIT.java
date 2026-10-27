@@ -34,7 +34,7 @@ class CourseRuleImportIT {
                 }
                 assertThat(context.getBean(CourseRuleRepository.class).findByCourseId(expected.courseId()))
                         .contains(expected);
-                assertThat(expected.reviewStatus()).isEqualTo(ReviewStatus.NEEDS_REVIEW);
+                assertThat(expected.reviewStatus()).isEqualTo(ReviewStatus.REVIEWED);
                 var courses = context.getBean(CatalogRepository.class).findCourses();
                 assertThat(courses).extracting(CatalogRepository.CatalogCourse::id)
                         .contains("csc-116-2026-2027", "csc-216-2026-2027", "csc-217-2026-2027");
