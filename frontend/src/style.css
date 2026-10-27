@@ -60,8 +60,9 @@ legend { font-weight: 750; padding: 0 10px 0 0; font-size: 17px; }
 .condition-heading strong { font-size: 14px; }
 .condition-item p { margin: 6px 0 0; color: #625d57; font-size: 13px; overflow-wrap: anywhere; }
 .result-badge { display: inline-block; border-radius: 4px; padding: 2px 7px; font-size: 11px; font-weight: 750; border: 1px solid; }
-.semester-course-result { border-top: 1px solid #e1ddd7; padding-top: 16px; margin-top: 24px; }
-.semester-course-result h3 { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.semester-course-result, .credit-load { border-top: 1px solid #e1ddd7; padding-top: 16px; margin-top: 24px; }
+.semester-course-result h3, .credit-load h3 { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.credit-cap-input { display: block; width: 100%; min-height: 46px; border: 1px solid #99938b; border-radius: 6px; padding: 10px; font: inherit; color: #242424; background: white; }
 @media (max-width: 900px) { .eligibility-layout { grid-template-columns: 1fr; } }
 @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } .header, footer { flex-wrap: wrap; } .hero { padding-top: 36px; } .card { padding: 22px; } main { padding-inline: 20px; } }
 @media (max-width: 420px) { .attempt-fields { grid-template-columns: 1fr; } nav { gap: 16px; flex-wrap: wrap; } }

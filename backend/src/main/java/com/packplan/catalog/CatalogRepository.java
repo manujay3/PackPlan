@@ -137,6 +137,22 @@ public class CatalogRepository {
         }
     }
 
+    /** Reads only the metadata needed for a proposed semester's credit check. */
+    public List<CourseCredits> findCourseCredits(List<String> courseIds) {
+        try (var session = driver.session(SessionConfig.forDatabase("neo4j"))) {
+            return session.run("""
+                    MATCH (course:Course) WHERE course.id IN $ids
+                    RETURN course.id AS id, course.credits AS credits, course.reviewStatus AS reviewStatus
+                    """, Map.of("ids", courseIds)).list(record -> new CourseCredits(
+                    record.get("id").asString(),
+                    record.get("credits").isNull() ? null : record.get("credits").asInt(),
+                    record.get("reviewStatus").isNull() ? null
+                            : ReviewStatus.valueOf(record.get("reviewStatus").asString())));
+        }
+    }
+
+    public record CourseCredits(String courseId, Integer credits, ReviewStatus reviewStatus) {}
+
     public record CatalogCourse(
             String id, String code, String subject, String number, String title,
             int credits, String catalogYear, String sourceUrl, String sourceSha256,

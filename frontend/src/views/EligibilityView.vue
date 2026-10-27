@@ -8,6 +8,7 @@ const catalogState = ref('loading')
 const targetId = ref('')
 const completed = ref([])
 const concurrent = ref([])
+const creditCap = ref('')
 const checking = ref(false)
 const result = ref(null)
 const error = ref('')
@@ -30,7 +31,11 @@ const target = computed(() => courses.value.find(course => course.id === targetI
 const resultReason = computed(() => result.value?.reason?.replaceAll('NEEDS_REVIEW', 'needs review').replaceAll('UNREVIEWED', 'unreviewed'))
 const courseNames = computed(() => Object.fromEntries(courses.value.map(course => [course.id, course.code])))
 const sameTermChoices = computed(() => courses.value.filter(course => props.semester || course.id !== targetId.value))
-const selectedCredits = computed(() => courses.value.filter(course => concurrent.value.includes(course.id)).reduce((sum, course) => sum + course.credits, 0))
+const selectedCredits = computed(() => {
+  const selected = courses.value.filter(course => concurrent.value.includes(course.id))
+  return selected.every(course => Number.isSafeInteger(course.credits) && course.credits >= 0 && course.reviewStatus === 'REVIEWED')
+    ? selected.reduce((sum, course) => sum + course.credits, 0) : null
+})
 
 function clearEvaluation() {
   evaluationRequest?.abort()
@@ -39,7 +44,7 @@ function clearEvaluation() {
   result.value = null
   error.value = ''
 }
-watch([targetId, completed, concurrent], clearEvaluation, { deep: true, flush: 'sync' })
+watch([targetId, completed, concurrent, creditCap], clearEvaluation, { deep: true, flush: 'sync' })
 watch(targetId, id => { if (!props.semester) concurrent.value = concurrent.value.filter(courseId => courseId !== id) }, { flush: 'sync' })
 
 async function loadCatalog() {
@@ -84,6 +89,15 @@ function validResult(data, id) {
     && (data.condition === null ? data.status === 'MANUAL_REVIEW' && data.reviewStatus === null : validCondition(data.condition))
     && (data.status !== 'SATISFIED' || data.reviewStatus === 'REVIEWED')
 }
+function validCreditLoad(load, cap, proposed) {
+  if (!load || load.creditCap !== cap || !statuses.includes(load.status) || typeof load.reason !== 'string'
+    || !Number.isSafeInteger(load.knownCredits) || load.knownCredits < 0 || !Array.isArray(load.unresolvedCourses)
+    || new Set(load.unresolvedCourses).size !== load.unresolvedCourses.length
+    || !load.unresolvedCourses.every(id => proposed.includes(id))) return false
+  const unknown = load.unresolvedCourses.length > 0
+  return (unknown ? load.totalCredits === null : load.totalCredits === load.knownCredits)
+    && load.status === (load.knownCredits > cap ? 'BLOCKED' : unknown ? 'MANUAL_REVIEW' : 'SATISFIED')
+}
 async function evaluate() {
   if (checking.value || !targetId.value) return
   clearEvaluation()
@@ -93,6 +107,7 @@ async function evaluate() {
   }
   const id = targetId.value
   const proposed = [...concurrent.value]
+  const cap = Number(creditCap.value)
   const request = new AbortController()
   evaluationRequest = request
   checking.value = true
@@ -103,7 +118,7 @@ async function evaluate() {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: request.signal, cache: 'no-store',
       body: JSON.stringify({
         completedCourses: completed.value.map(({ courseId, grade, creditEarned }) => ({ courseId, grade, creditEarned: creditEarned === 'true' })),
-        ...(props.semester ? { proposedCourses: proposed } : { concurrentCourses: proposed }),
+        ...(props.semester ? { proposedCourses: proposed, creditCap: cap } : { concurrentCourses: proposed }),
       }),
     })
     if (!response.ok) throw new Error(response.status === 400 ? 'invalid' : 'unavailable')
@@ -111,8 +126,9 @@ async function evaluate() {
     const valid = props.semester
       ? data && statuses.includes(data.status) && Array.isArray(data.courses) && data.courses.length === proposed.length
         && data.courses.every((course, index) => validResult(course, proposed[index]))
-        && data.status === (data.courses.some(course => course.status === 'BLOCKED') ? 'BLOCKED'
-          : data.courses.some(course => course.status === 'MANUAL_REVIEW') ? 'MANUAL_REVIEW' : 'SATISFIED')
+        && validCreditLoad(data.creditLoad, cap, proposed)
+        && data.status === (data.creditLoad.status === 'BLOCKED' || data.courses.some(course => course.status === 'BLOCKED') ? 'BLOCKED'
+          : data.creditLoad.status === 'MANUAL_REVIEW' || data.courses.some(course => course.status === 'MANUAL_REVIEW') ? 'MANUAL_REVIEW' : 'SATISFIED')
       : validResult(data, id)
     if (!valid) throw new Error('Unexpected result')
     if (evaluationRequest === request) {
@@ -193,7 +209,13 @@ onUnmounted(() => { catalogRequest?.abort(); clearEvaluation() })
         <div class="concurrent-options">
           <label v-for="course in sameTermChoices" :key="course.id" class="checkbox-label"><input v-model="concurrent" type="checkbox" :value="course.id" /><span><strong>{{ course.code }}</strong> <span class="field-help">{{ course.title }} · {{ course.catalogYear }}</span></span></label>
         </div>
-        <p v-if="semester" class="field-help">{{ concurrent.length }} selected · {{ selectedCredits }} credits. Credit caps, offerings, and timetable conflicts are not checked.</p>
+        <template v-if="semester">
+          <p class="field-help">{{ concurrent.length }} selected · {{ selectedCredits === null ? 'Credit total unavailable' : `${selectedCredits} credits (catalog preview)` }}. The server verifies the credit load when you check.</p>
+          <label for="credit-cap">Your semester credit cap</label>
+          <input id="credit-cap" v-model.number="creditCap" class="credit-cap-input" type="number" min="1" step="1" required placeholder="Enter a credit limit" aria-describedby="credit-cap-help" />
+          <p id="credit-cap-help" class="field-help">Choose a positive whole number for your planning limit. Offerings and timetable conflicts are not checked.</p>
+          <p v-if="selectedCredits !== null && creditCap !== '' && selectedCredits > creditCap" class="form-error">Your selection exceeds your credit cap. Check the semester to see the full result.</p>
+        </template>
       </fieldset>
       <p class="field-help">Entries stay on this page only. Reloading or leaving clears them; nothing is saved to your profile.</p>
       <button type="submit" :disabled="checking">{{ checking ? 'Checking requirements…' : semester ? 'Check semester requirements' : 'Check course requirements' }}</button>
@@ -207,12 +229,18 @@ onUnmounted(() => { catalogRequest?.abort(); clearEvaluation() })
         <p v-if="checking">{{ semester ? 'Checking every selected course against your evidence…' : 'Checking the stored rule against your evidence…' }}</p>
         <div v-else-if="result" class="result-summary" :class="result.status.toLowerCase()">
           <h3>{{ semester ? semesterLabels[result.status] : statusLabels[result.status] }}</h3>
-          <p>{{ semester ? 'All selected courses must meet their stored rules. Review each course below, including unresolved checks.' : resultReason }}</p>
+          <p>{{ semester ? 'All selected courses must meet their stored rules and your credit cap. Review the credit load and each course below.' : resultReason }}</p>
           <p v-if="!semester" class="field-help">{{ result.reviewStatus ? reviewLabels[result.reviewStatus] : 'No stored rule available' }}</p>
         </div>
         <p v-else class="result-placeholder">Add your evidence, then check {{ semester ? 'the semester' : 'the course' }}. Changing any entry clears the previous result.</p>
       </div>
       <ul v-if="result?.condition" class="condition-list root-conditions"><ConditionTree :condition="result.condition" :course-names="courseNames" /></ul>
+      <section v-if="semester && result?.creditLoad" class="credit-load" aria-labelledby="credit-load-title">
+        <h3 id="credit-load-title">Credit load <span class="result-badge" :class="result.creditLoad.status.toLowerCase()">{{ result.creditLoad.status === 'BLOCKED' ? 'Over cap' : result.creditLoad.status === 'MANUAL_REVIEW' ? 'Needs review' : 'Within cap' }}</span></h3>
+        <p>{{ result.creditLoad.totalCredits === null ? `Known subtotal: ${result.creditLoad.knownCredits}` : result.creditLoad.totalCredits }} credits · Cap: {{ result.creditLoad.creditCap }}</p>
+        <p class="field-help">{{ result.creditLoad.reason }}</p>
+        <p v-if="result.creditLoad.unresolvedCourses.length" class="field-help">Unresolved credits: {{ result.creditLoad.unresolvedCourses.map(id => courseNames[id] || id).join(', ') }}. The full total is unknown.</p>
+      </section>
       <article v-for="course in (result?.courses || [])" :key="course.courseId" class="semester-course-result">
         <h3>{{ courseNames[course.courseId] || course.courseId }} <span class="result-badge" :class="course.status.toLowerCase()">{{ statusLabels[course.status] }}</span></h3>
         <p class="field-help">{{ course.reviewStatus ? reviewLabels[course.reviewStatus] : 'No stored rule available' }}</p>

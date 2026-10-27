@@ -4,6 +4,10 @@ import { readFileSync } from 'node:fs'
 const catalog = JSON.parse(readFileSync(new URL('../../backend/src/main/resources/catalog/courses.json', import.meta.url)))
 const courses = catalog.courses.map(course => ({ ...course, catalogYear: catalog.catalogYear }))
 const endpoint = '**/api/semesters/eligibility'
+function creditLoad(cap = 15, known = 4, unresolved = []) {
+  return { creditCap: cap, knownCredits: known, totalCredits: unresolved.length ? null : known,
+    unresolvedCourses: unresolved, status: known > cap ? 'BLOCKED' : unresolved.length ? 'MANUAL_REVIEW' : 'SATISFIED', reason: 'Catalog credit check.' }
+}
 function courseResult(id, status = 'SATISFIED') {
   return { courseId: id, status, reviewStatus: status === 'MANUAL_REVIEW' ? null : 'REVIEWED',
     reason: 'Result applies only to stored rules.', condition: status === 'MANUAL_REVIEW' ? null
@@ -12,6 +16,7 @@ function courseResult(id, status = 'SATISFIED') {
 async function setup(page) {
   await page.route('**/api/catalog/courses', route => route.fulfill({ json: courses }))
   await page.goto('/semester')
+  await page.getByLabel('Your semester credit cap').fill('15')
 }
 async function pair(page) {
   await page.getByRole('checkbox', { name: /CSC 216/ }).check()
@@ -23,7 +28,7 @@ test('validates a proposed pair, shows each course, and clears results when a co
   let blocked = false
   await page.route(endpoint, route => {
     body = route.request().postDataJSON()
-    return route.fulfill({ json: { status: blocked ? 'BLOCKED' : 'SATISFIED', courses: body.proposedCourses.map(id => courseResult(id, blocked ? 'BLOCKED' : 'SATISFIED')) } })
+    return route.fulfill({ json: { status: blocked ? 'BLOCKED' : 'SATISFIED', creditLoad: creditLoad(body.creditCap, blocked ? 3 : 4), courses: body.proposedCourses.map(id => courseResult(id, blocked ? 'BLOCKED' : 'SATISFIED')) } })
   })
   await setup(page)
   await page.getByRole('button', { name: 'Check semester requirements', exact: true }).click()
@@ -39,7 +44,7 @@ test('validates a proposed pair, shows each course, and clears results when a co
   await page.getByRole('button', { name: 'Check semester requirements', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Stored semester rules satisfied' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Semester requirements', exact: true })).toBeFocused()
-  expect(body).toEqual({ completedCourses: [{ courseId: 'csc-116-2026-2027', grade: 'C', creditEarned: true }], proposedCourses: ['csc-216-2026-2027', 'csc-217-2026-2027'] })
+  expect(body).toEqual({ completedCourses: [{ courseId: 'csc-116-2026-2027', grade: 'C', creditEarned: true }], proposedCourses: ['csc-216-2026-2027', 'csc-217-2026-2027'], creditCap: 15 })
   await expect(page.locator('.semester-course-result')).toHaveCount(2)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   await page.screenshot({ path: testInfo.outputPath('semester.png'), fullPage: true })
@@ -52,7 +57,7 @@ test('validates a proposed pair, shows each course, and clears results when a co
 })
 
 test('missing course rules keep the whole semester under review', async ({ page }) => {
-  await page.route(endpoint, route => route.fulfill({ json: { status: 'MANUAL_REVIEW', courses: [courseResult('ma-141-2026-2027', 'MANUAL_REVIEW')] } }))
+  await page.route(endpoint, route => route.fulfill({ json: { status: 'MANUAL_REVIEW', creditLoad: creditLoad(), courses: [courseResult('ma-141-2026-2027', 'MANUAL_REVIEW')] } }))
   await setup(page)
   await page.getByRole('checkbox', { name: /MA 141/ }).check()
   await page.getByRole('button', { name: 'Check semester requirements', exact: true }).click()
@@ -64,7 +69,7 @@ test('rejects incomplete or inconsistent semester responses and preserves select
   let calls = 0
   await page.route(endpoint, route => route.fulfill({ json: ++calls === 1
     ? { status: 'SATISFIED', courses: [] }
-    : { status: 'SATISFIED', courses: [courseResult('csc-216-2026-2027', 'BLOCKED'), courseResult('csc-217-2026-2027')] } }))
+    : { status: 'SATISFIED', creditLoad: creditLoad(), courses: [courseResult('csc-216-2026-2027', 'BLOCKED'), courseResult('csc-217-2026-2027')] } }))
   await setup(page)
   await pair(page)
   for (let i = 0; i < 2; i++) {
@@ -84,4 +89,44 @@ test('course and semester screens do not carry evidence between modes', async ({
   await expect(page.getByRole('checkbox', { name: /CSC 216/ })).not.toBeChecked()
   await page.reload()
   await expect(page.getByRole('heading', { name: 'Check a semester together.' })).toBeVisible()
+  await expect(page.getByLabel('Your semester credit cap')).toHaveValue('')
+})
+
+test('cap edits invalidate results and overloads block otherwise satisfied rules', async ({ page }) => {
+  let calls = 0
+  await page.route(endpoint, route => {
+    calls++
+    const body = route.request().postDataJSON()
+    const load = creditLoad(body.creditCap)
+    return route.fulfill({ json: { status: load.status, creditLoad: load, courses: body.proposedCourses.map(id => courseResult(id)) } })
+  })
+  await setup(page)
+  await pair(page)
+  for (const invalid of ['', '0', '1.5']) {
+    await page.getByLabel('Your semester credit cap').fill(invalid)
+    await page.getByRole('button', { name: 'Check semester requirements', exact: true }).click()
+    expect(calls).toBe(0)
+  }
+  await page.getByLabel('Your semester credit cap').fill('3')
+  await page.getByRole('button', { name: 'Check semester requirements', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Semester has blockers' })).toBeVisible()
+  await expect(page.locator('.credit-load')).toContainText('Over cap')
+  await expect(page.locator('.semester-course-result .result-badge').first()).toHaveText('Stored rule satisfied')
+  await page.getByLabel('Your semester credit cap').fill('4')
+  await expect(page.getByRole('heading', { name: 'Semester has blockers' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Check semester requirements', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Stored semester rules satisfied' })).toBeVisible()
+  await expect(page.locator('.credit-load')).toContainText('4 credits · Cap: 4')
+})
+
+test('uncertain credit totals remain visibly unknown', async ({ page }) => {
+  await page.route(endpoint, route => route.fulfill({ json: { status: 'MANUAL_REVIEW', creditLoad: creditLoad(15, 3, ['csc-217-2026-2027']),
+    courses: ['csc-216-2026-2027', 'csc-217-2026-2027'].map(id => courseResult(id)) } }))
+  await setup(page)
+  await pair(page)
+  await page.getByRole('button', { name: 'Check semester requirements', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Semester needs review' })).toBeVisible()
+  await expect(page.locator('.credit-load')).toContainText('Known subtotal: 3 credits')
+  await expect(page.locator('.credit-load')).toContainText('Unresolved credits: CSC 217')
+  await expect(page.locator('.credit-load')).toContainText('The full total is unknown')
 })

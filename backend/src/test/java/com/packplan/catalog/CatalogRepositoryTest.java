@@ -20,6 +20,33 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 class CatalogRepositoryTest {
+    @Test
+    void readsSelectedCreditValuesWithoutInventingMissingMetadata() {
+        var driver = mock(Driver.class);
+        var session = mock(Session.class);
+        var result = mock(Result.class);
+        when(driver.session(any(SessionConfig.class))).thenReturn(session);
+        when(session.run(anyString(), anyMap())).thenReturn(result);
+        var complete = mock(org.neo4j.driver.Record.class);
+        var incomplete = mock(org.neo4j.driver.Record.class);
+        when(complete.get("id")).thenReturn(org.neo4j.driver.Values.value("ma-141-2026-2027"));
+        when(complete.get("credits")).thenReturn(org.neo4j.driver.Values.value(4));
+        when(complete.get("reviewStatus")).thenReturn(org.neo4j.driver.Values.value("REVIEWED"));
+        when(incomplete.get("id")).thenReturn(org.neo4j.driver.Values.value("missing-2026-2027"));
+        when(incomplete.get("credits")).thenReturn(org.neo4j.driver.Values.NULL);
+        when(incomplete.get("reviewStatus")).thenReturn(org.neo4j.driver.Values.NULL);
+        when(result.list(any(java.util.function.Function.class))).thenAnswer(invocation -> {
+            java.util.function.Function<org.neo4j.driver.Record, Object> mapper = invocation.getArgument(0);
+            return java.util.List.of(mapper.apply(complete), mapper.apply(incomplete));
+        });
+        var ids = java.util.List.of("ma-141-2026-2027", "missing-2026-2027");
+        assertThat(new CatalogRepository(driver).findCourseCredits(ids)).containsExactly(
+                new CatalogRepository.CourseCredits(ids.getFirst(), 4, ReviewStatus.REVIEWED),
+                new CatalogRepository.CourseCredits(ids.getLast(), null, null));
+        verify(session).run(org.mockito.ArgumentMatchers.contains("course.id IN $ids"), eq(Map.of("ids", ids)));
+        verify(session).close();
+        verifyNoMoreInteractions(session);
+    }
     
     @Test
     void savesAReviewedProgramWithExpectedParameters() {

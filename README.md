@@ -179,6 +179,9 @@ Choose **Check a semester** at `/semester` to evaluate every proposed course
 together. `POST /api/semesters/eligibility` returns an overall result plus each
 course's explanation. Any known blocker blocks the semester; missing rules or
 unresolved conditions require review. See [semester behavior and verification](docs/semester-eligibility.md).
+The semester screen requires a positive whole-number credit cap. The server
+checks proposed-course credits from reviewed catalog metadata; overloads block
+the semester, and unresolved credit totals require review.
 See [rule review and live verification](docs/course-rule-review.md) for the
 timing review evidence, import instructions, and repeatable live check.
 

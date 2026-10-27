@@ -12,14 +12,17 @@ clears the result; leaving or reloading clears all entries. Nothing is saved.
   "completedCourses": [
     {"courseId":"csc-116-2026-2027","grade":"C","creditEarned":true}
   ],
-  "proposedCourses": ["csc-216-2026-2027", "csc-217-2026-2027"]
+  "proposedCourses": ["csc-216-2026-2027", "csc-217-2026-2027"],
+  "creditCap": 15
 }
 ```
 
-Both lists are required. Proposed courses must be nonempty, unique, nonblank
+Both lists and a positive whole-number `creditCap` are required. The cap is a
+user-chosen planning limit; the screen starts with no cap selected. Older
+requests without `creditCap` now return HTTP 400. Proposed courses must be nonempty, unique, nonblank
 IDs. Invalid evidence returns HTTP 400 before database access. The response
 uses HTTP 200 and `Cache-Control: no-store`, with an overall `status` and a
-`courses` list of explained course results in request order.
+`courses` list of explained course results in request order, plus `creditLoad`.
 
 For each proposed course, the evaluator uses the shared prior attempts and
 all other proposed courses as same-term enrollment. It never includes a course
@@ -28,8 +31,8 @@ or recursively expands the rule graph. The CSC 216/217 pair therefore evaluates
 without a loop. The [single-course grade and timing behavior](eligibility.md)
 also applies here.
 
-The semester is `BLOCKED` if any course is blocked; otherwise it is
-`MANUAL_REVIEW` if any course requires review; otherwise it is `SATISFIED`.
+The semester is `BLOCKED` if any course or the credit load is blocked; otherwise
+it is `MANUAL_REVIEW` if either requires review; otherwise it is `SATISFIED`.
 Missing stored rules, including unknown course IDs, require manual review.
 Unsupported and unreviewed rules cannot silently pass. A database error fails
 the request rather than returning missing-rule or success results.
@@ -40,6 +43,28 @@ corequisite condition while a selected classmate is blocked by its own
 prerequisite. The overall semester still reports blocked, and every course's
 explanation remains visible. Individual results are not independent approvals
 to register. Request reads are not an atomic catalog-version snapshot.
+
+## Credit load
+
+The server reads credit metadata for the proposed IDs from Neo4j. Only unique,
+reviewed records with nonnegative whole-number credits contribute to the known
+subtotal. Completed attempts are not included in the term load. Missing,
+duplicate, unreviewed, or missing/negative credit values remain unresolved.
+Malformed database value types fail the request rather than silently passing.
+
+`creditLoad` contains `status`, `creditCap`, `knownCredits`, `totalCredits`,
+`unresolvedCourses`, and `reason`. A complete total equal to the cap is within
+the limit; a subtotal greater than the cap blocks even if other credits are
+unknown. Otherwise unresolved values require manual review. `totalCredits` is
+null when incomplete, so a known subtotal of zero never claims a complete zero
+load. Totals use 64-bit arithmetic. This fixed-credit sample does not model
+variable-credit choices or institution-specific overload approvals.
+
+The form displays a catalog preview; the result shows the server's credit
+check. Changing the cap invalidates the previous result and cancels a pending
+check, just like changing courses or grades. Caps are required, positive JSON
+integers; fractions, strings, booleans, missing/null values, and values outside
+the API integer range are rejected. The cap is not persisted.
 
 ## Examples and scope
 
@@ -56,13 +81,17 @@ to register. Request reads are not an atomic catalog-version snapshot.
 
 This checks the stored enrollment rules for one caller-asserted target term.
 It does not choose courses, schedule future terms, verify term dates, check
-offerings/timetables, apply credit caps, audit degree requirements, resolve
+offerings/timetables, audit degree requirements, resolve
 transfer equivalencies, or establish graduation eligibility. The credit total
-on screen is informational. Exact catalog IDs and prior earned-credit claims
+preview on screen is informational; the server enforces the selected cap.
+Exact catalog IDs and prior earned-credit claims
 come from the caller. The sample remains incomplete and `catalogReady` stays
 false.
 
 ## Verification — October 26, 2026
+
+The initial semester implementation was verified as follows; the later cap
+verification is recorded below.
 
 All 117 ordinary backend tests passed. Semester tests exercise the real
 controller/evaluator with a mocked rule repository, including paired courses,
@@ -86,3 +115,23 @@ when starting the backend. No student evidence or catalog changes were saved.
 Application images were not rebuilt; local Vite, backend, and Neo4j remain
 running. The ordinary browser command skips the live checks; see
 [browser commands](eligibility.md#browser-verification--october-26-2026).
+
+## Credit-cap verification — October 26, 2026
+
+All 131 backend tests passed, including cap boundaries (3, 4, and 5 for the
+4-credit pair), invalid/missing caps, nullable metadata reads, missing and
+unreviewed credit values, duplicates, known overloads with unknown totals,
+64-bit totals, and database failure. The course-rule checks remain unchanged.
+
+The production build and all 28 desktop/mobile browser tests passed. New cases
+cover required/whole-number caps, cap-edit invalidation, overloads despite
+satisfied course rules, the exact cap boundary, and explicitly unknown totals.
+The updated mobile screen was visually inspected. These tests mock API data;
+four live-test instances are skipped by the ordinary browser command.
+
+Both opt-in live desktop checks passed through Vite, Spring Boot, and Neo4j.
+The real 4-credit CSC 216/217 pair blocks with a cap of 3 and satisfies the
+credit check with a cap of 4. Missing rules and strict prerequisites still
+produce review/blocking results with a larger cap. Imports were disabled;
+no evidence or catalog changes were saved. Vite, the updated backend, and
+Neo4j remain running; application images were not rebuilt.
