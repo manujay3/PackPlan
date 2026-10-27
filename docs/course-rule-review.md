@@ -78,8 +78,12 @@ exist with the matching catalog year. Stop and restart without import flags
 afterward, and unset any import environment variables. Import errors fail
 startup instead of silently skipping a rule.
 
-No API exposes the rule yet. It does not establish enrollment eligibility
-or change catalog readiness.
+`GET /api/catalog/courses/{courseId}/rule` exposes the persisted rule, including
+its nested expression, review status, and source provenance. It returns HTTP
+404 with an empty body when no rule is stored for that course ID, including
+unknown IDs. Both responses use `Cache-Control: no-store`. A missing rule does
+not imply unrestricted enrollment. Reading this endpoint does not import data,
+establish enrollment eligibility, or change catalog readiness.
 
 ## Live verification
 
@@ -116,5 +120,14 @@ The local database now stores the reviewed rule. Neo4j was left running;
 application images were not rebuilt. This verifies sequential imports only.
 
 Catalog readiness remains false: other course rules and program requirements
-are incomplete. The next implementation step is to expose persisted course
-rules through the catalog API.
+are incomplete. Persisted rules are now exposed through the catalog API;
+eligibility evaluation remains unimplemented.
+
+The API addition passed all 38 backend tests on October 26. Its Spring MVC
+tests compare the entire JSON response to the sample rule and check uncached
+404 responses for a known course without a rule and an unknown course ID.
+The live `CourseRuleImportIT` also passed after being extended to exercise the
+controller through MockMvc with the real repository after each import/startup
+pass. It verifies the complete response and cache header against the persisted
+rule. This checks MVC handling with live Neo4j, not a running HTTP server or
+the frontend proxy. Application images were not rebuilt.

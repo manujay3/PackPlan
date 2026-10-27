@@ -10,8 +10,11 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.SessionConfig;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /** Explicit live check: updates bundled courses and the CSC 216 draft in the configured database. */
 @EnabledIfSystemProperty(named = "packplan.live-import", matches = "true")
@@ -35,6 +38,13 @@ class CourseRuleImportIT {
                 assertThat(context.getBean(CourseRuleRepository.class).findByCourseId(expected.courseId()))
                         .contains(expected);
                 assertThat(expected.reviewStatus()).isEqualTo(ReviewStatus.REVIEWED);
+                var mvc = MockMvcBuilders.standaloneSetup(
+                        context.getBean(CourseRuleController.class)).build();
+                mvc.perform(get("/api/catalog/courses/{courseId}/rule", expected.courseId()))
+                        .andExpect(status().isOk())
+                        .andExpect(header().string("Cache-Control", "no-store"))
+                        .andExpect(content().json(new ObjectMapper().writeValueAsString(expected),
+                                org.springframework.test.json.JsonCompareMode.STRICT));
                 var courses = context.getBean(CatalogRepository.class).findCourses();
                 assertThat(courses).extracting(CatalogRepository.CatalogCourse::id)
                         .contains("csc-116-2026-2027", "csc-216-2026-2027", "csc-217-2026-2027");

@@ -147,8 +147,13 @@ CSC 216 has a structured enrollment rule with source provenance and
 beforehand or taken concurrently. An explicit `--packplan.catalog.import-draft-rules=true`
 flag (retaining its legacy name) saves it to Neo4j; it defaults to false. When combined with the course
 import flag, course metadata imports first. The nested expression is preserved
-as JSON on a `CourseRule` node linked to its course. It is not yet exposed by
-the API or used for eligibility checks, and `catalogReady` remains false.
+as JSON on a `CourseRule` node linked to its course.
+`GET /api/catalog/courses/csc-216-2026-2027/rule` returns the persisted rule,
+including provenance, review status, and the nested expression. Responses
+disable caching. A course without a stored rule (or an unknown course ID)
+returns HTTP 404; this means no rule is available, not that enrollment is
+unrestricted. The endpoint reads the database and does not import bundled
+data. Rules are not yet used for eligibility checks, and `catalogReady` remains false.
 See [rule review and live verification](docs/course-rule-review.md) for the
 timing review evidence, import instructions, and repeatable live check.
 
