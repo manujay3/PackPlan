@@ -148,6 +148,13 @@ its local save time, exact catalog year where available, course selection,
 prior attempts, and cap. Different selections are listed as courses unique to
 each alternative.
 
+Each draft may also have an optional term label, such as “Fall 2026,” and
+per-course offering assumptions. These labels and checkboxes are user supplied
+planning notes; the application does not verify the term or course availability.
+They are displayed with the saved plan and restored when it is loaded. They are
+not sent to the eligibility API and do not affect its result. Existing saves
+without these fields load with an unlabeled term and no offering assumptions.
+
 **Load A/B** replaces the current form inputs and clears any previous result;
 it does not restore an eligibility verdict. Courses absent from the current
 catalog remain visible with their exact IDs, rather than being dropped or
@@ -163,7 +170,8 @@ or receiving a save change from another tab, cancels and clears the comparison.
 Editing the current unsaved form does not alter the saved comparison evidence.
 
 The storage key is `packplan.semester-alternatives.v1`, with a versioned pair
-of slots. Saved records contain inputs and save time, never API results.
+of slots. Saved records contain inputs, planning notes, and save time, never
+API results.
 Data stays in this browser/origin, including the entered grades; it is not an
 account, cloud sync, or server-side profile. **Delete A/B** removes a slot;
 deleting the last slot removes the feature key. Other browser data is untouched.

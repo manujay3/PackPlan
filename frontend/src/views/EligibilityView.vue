@@ -11,6 +11,8 @@ const targetId = ref('')
 const completed = ref([])
 const concurrent = ref([])
 const creditCap = ref('')
+const termLabel = ref('')
+const assumedOfferedCourses = ref([])
 const checking = ref(false)
 const result = ref(null)
 const error = ref('')
@@ -84,13 +86,16 @@ function getSemesterEvidence() {
     error.value = 'Choose at least one proposed course, complete every attempt, and enter a positive whole-number cap.'
     return null
   }
-  return evidence
+  return { ...evidence, termLabel: termLabel.value.trim(), assumedOfferedCourses: assumedOfferedCourses.value.filter(id => evidence.proposedCourses.includes(id)) }
 }
-function loadAlternative(evidence) {
+function loadAlternative(slot) {
   clearEvaluation()
+  const evidence = slot.evidence
   completed.value = evidence.completedCourses.map(attempt => ({ ...attempt, creditEarned: String(attempt.creditEarned), key: nextRow++ }))
   concurrent.value = [...evidence.proposedCourses]
   creditCap.value = evidence.creditCap
+  termLabel.value = slot.termLabel || ''
+  assumedOfferedCourses.value = [...(slot.assumedOfferedCourses || [])]
 }
 async function evaluate() {
   if (checking.value || !targetId.value) return
@@ -202,6 +207,14 @@ onUnmounted(() => { catalogRequest?.abort(); clearEvaluation() })
         </div>
         <template v-if="semester">
           <p class="field-help">{{ concurrent.length }} selected · {{ selectedCredits === null ? 'Credit total unavailable' : `${selectedCredits} credits (catalog preview)` }}. The server verifies the credit load when you check.</p>
+          <label for="term-label">Term label (optional)</label>
+          <input id="term-label" v-model="termLabel" class="credit-cap-input" maxlength="60" placeholder="For example, Fall 2026" />
+          <p class="field-help">A label for your saved plan; it does not verify the academic calendar.</p>
+          <div v-if="concurrent.length" class="offering-assumptions">
+            <p><strong>Offering assumptions</strong></p>
+            <p class="field-help">Mark courses you are assuming will be offered. This is your planning assumption; availability is not checked.</p>
+            <label v-for="id in concurrent" :key="id" class="checkbox-label"><input v-model="assumedOfferedCourses" type="checkbox" :value="id" /><span>{{ savedCourseNames[id] || `${id} · not in the current catalog` }} · assume offered</span></label>
+          </div>
           <label for="credit-cap">Your semester credit cap</label>
           <input id="credit-cap" v-model.number="creditCap" class="credit-cap-input" type="number" min="1" step="1" required placeholder="Enter a credit limit" aria-describedby="credit-cap-help" />
           <p id="credit-cap-help" class="field-help">Choose a positive whole number for your planning limit. Offerings and timetable conflicts are not checked.</p>

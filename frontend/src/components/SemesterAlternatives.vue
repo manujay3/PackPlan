@@ -44,7 +44,8 @@ function save(index) {
   const evidence = props.getEvidence()
   if (!evidence) { message.value = 'Complete the current semester form before saving.'; return }
   try {
-    const updated = saveAlternative(index, names.value[index], evidence)
+    const { termLabel, assumedOfferedCourses, ...apiEvidence } = evidence
+    const updated = saveAlternative(index, names.value[index], apiEvidence, window.localStorage, { termLabel, assumedOfferedCourses })
     clearComparison()
     slots.value = updated
     storageError.value = ''
@@ -70,7 +71,7 @@ function load(index) {
   sync()
   const slot = slots.value[index]
   if (!slot) return
-  emit('load', slot.evidence)
+  emit('load', slot)
   message.value = `Loaded ${slot.name}. Check the semester again for current results.`
 }
 async function compare() {
@@ -134,8 +135,12 @@ onUnmounted(() => { clearComparison(); window.removeEventListener('storage', sto
         </div>
         <template v-if="slot">
           <p class="field-help">Saved {{ new Date(slot.savedAt).toLocaleString() }} · Credit cap: {{ slot.evidence.creditCap }}</p>
+          <p><strong>Term:</strong> {{ slot.termLabel || 'Unlabeled' }}</p>
           <h4>Proposed courses</h4>
           <ul><li v-for="id in slot.evidence.proposedCourses" :key="id">{{ courseNames[id] || `${id} · not in the current catalog` }}</li></ul>
+          <h4>Offering assumptions</h4>
+          <p class="field-help">These are user supplied assumptions. Course availability has not been verified.</p>
+          <ul><li v-for="id in slot.evidence.proposedCourses" :key="id">{{ courseNames[id] || id }} · {{ slot.assumedOfferedCourses.includes(id) ? 'assumed offered' : 'offering unconfirmed' }}</li></ul>
           <h4>Prior attempts</h4>
           <p v-if="!slot.evidence.completedCourses.length" class="field-help">None recorded.</p>
           <ul v-else><li v-for="(attempt, n) in slot.evidence.completedCourses" :key="n">{{ courseNames[attempt.courseId] || attempt.courseId }} · {{ gradeName(attempt.grade) }} · {{ attempt.creditEarned ? 'Earned credit' : 'No earned credit' }}</li></ul>

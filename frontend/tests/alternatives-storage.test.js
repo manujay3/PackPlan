@@ -19,6 +19,23 @@ test('stores snapshots of evidence only, never cached eligibility results', () =
   assert.equal(saved.evidence.result, undefined)
   assert.equal(db.getItem(ALTERNATIVES_KEY).includes('SATISFIED'), false)
 })
+test('stores term labels and user supplied offering assumptions, while reading older saves', () => {
+  const db = storage()
+  saveAlternative(0, 'Fall plan', evidence(), db, { termLabel: 'Fall 2026', assumedOfferedCourses: ['csc-216-2026-2027'] })
+  const saved = readAlternatives(db)[0]
+  assert.equal(saved.termLabel, 'Fall 2026')
+  assert.deepEqual(saved.assumedOfferedCourses, ['csc-216-2026-2027'])
+  assert.deepEqual(JSON.parse(db.getItem(ALTERNATIVES_KEY)).slots[0].evidence, evidence())
+
+  db.setItem(ALTERNATIVES_KEY, JSON.stringify({ version: 1, slots: [{ name: 'Old', savedAt: new Date().toISOString(), evidence: evidence() }, null] }))
+  assert.equal(readAlternatives(db)[0].termLabel, '')
+  assert.deepEqual(readAlternatives(db)[0].assumedOfferedCourses, [])
+})
+test('rejects offering assumptions for courses outside the saved term', () => {
+  const db = storage()
+  assert.throws(() => saveAlternative(0, 'A', evidence(), db, { termLabel: 'Fall', assumedOfferedCourses: ['not-selected'] }))
+  assert.throws(() => saveAlternative(0, 'A', evidence(), db, { termLabel: 'x'.repeat(61), assumedOfferedCourses: [] }))
+})
 test('reads the latest other slot before saving and replaces only the chosen alternative', () => {
   const db = storage()
   saveAlternative(0, 'A', evidence(), db)
