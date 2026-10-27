@@ -94,6 +94,11 @@ placement tests, overrides, transfer equivalencies, or graduation audit is
 implemented. `catalogReady` remains false. Evidence is caller-supplied and is
 not verified against a transcript or saved.
 
+To check the rules of every proposed course in one term, use the
+[semester evaluator and screen](semester-eligibility.md). It aggregates each
+course's result without assuming proposed courses have been passed. This does
+not add degree validation or multi-term planning.
+
 ## Live verification command
 
 With the current sample imported into local Neo4j, use Java 21 and run:
@@ -164,6 +169,9 @@ retry, missing rules, malformed results, navigation, refresh, and horizontal
 overflow. Desktop and mobile screenshots were visually inspected. These tests
 mock API responses; mobile checks use Chrome emulation, not a physical device
 or Safari. Two live-test instances are intentionally skipped by this command.
+The later semester addition expands this to 24 ordinary browser checks and
+two opt-in live desktop checks; the ordinary command now skips four live
+instances across the two viewport projects.
 
 With the real backend on port 8080 and the existing sample in Neo4j, run the
 opt-in live browser check on macOS/Linux:

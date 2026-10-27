@@ -4,6 +4,7 @@ import App from './App.vue'
 import HomeView from './views/HomeView.vue'
 import AboutView from './views/AboutView.vue'
 import EligibilityView from './views/EligibilityView.vue'
+import SemesterView from './views/SemesterView.vue'
 import './style.css'
 
 const router = createRouter({
@@ -12,6 +13,7 @@ const router = createRouter({
     { path: '/', component: HomeView },
     { path: '/about', component: AboutView },
     { path: '/eligibility', component: EligibilityView },
+    { path: '/semester', component: SemesterView },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
 })

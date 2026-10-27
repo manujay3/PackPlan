@@ -175,6 +175,10 @@ See [evidence format, examples, and evaluation behavior](docs/eligibility.md).
 Open **Check a course** at `/eligibility` to enter completed attempts and
 same-term enrollment, then view the rule result and condition explanations.
 Entries clear on navigation or reload; editing evidence clears stale results.
+Choose **Check a semester** at `/semester` to evaluate every proposed course
+together. `POST /api/semesters/eligibility` returns an overall result plus each
+course's explanation. Any known blocker blocks the semester; missing rules or
+unresolved conditions require review. See [semester behavior and verification](docs/semester-eligibility.md).
 See [rule review and live verification](docs/course-rule-review.md) for the
 timing review evidence, import instructions, and repeatable live check.
 

@@ -4,7 +4,7 @@
     <ol class="roadmap">
       <li><strong>Application foundation — implemented</strong><p>Vue 3, Vue Router, a Java 21 Spring Boot API, and Docker Compose.</p></li>
       <li><strong>Reviewed curriculum data</strong><p>Computer Science BS and Economics BA, targeting 2026–2027. Import source URLs, requirements, and explicit unsupported rules into Neo4j.</p></li>
-      <li><strong>Enrollment rule checks — sample implemented</strong><p>Enter completed attempts and same-term enrollment to check stored rules, including AND/OR alternatives, minimum grades, corequisites, and manual-review conditions. Degree requirements and elective checks are still pending.</p></li>
+      <li><strong>Enrollment rule checks — sample implemented</strong><p>Check one course or every course in a proposed semester against prior credit and same-term enrollment. Results explain AND/OR alternatives, minimum grades, corequisites, and manual-review conditions. Degree requirements and elective checks are still pending.</p></li>
       <li><strong>Semester planning</strong><p>Credit limits, offering assumptions, target graduation, course editing, two saved alternatives, and a readable prerequisite graph. Keep demo profiles in browser local storage.</p></li>
       <li><strong>Cache and deployment</strong><p>Add Redis once the main flow works, then document an AWS deployment.</p></li>
     </ol>

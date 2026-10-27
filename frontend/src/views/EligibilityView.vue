@@ -2,6 +2,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import ConditionTree from '../components/ConditionTree.vue'
 
+const props = defineProps({ semester: Boolean })
 const courses = ref([])
 const catalogState = ref('loading')
 const targetId = ref('')
@@ -23,11 +24,13 @@ const grades = [
 const noCreditGrades = new Set(['F', 'UNSATISFACTORY', 'WITHDRAWN', 'INCOMPLETE'])
 const statuses = ['SATISFIED', 'BLOCKED', 'MANUAL_REVIEW']
 const statusLabels = { SATISFIED: 'Stored rule satisfied', BLOCKED: 'Requirements not met', MANUAL_REVIEW: 'Manual review needed' }
+const semesterLabels = { SATISFIED: 'Stored semester rules satisfied', BLOCKED: 'Semester has blockers', MANUAL_REVIEW: 'Semester needs review' }
 const reviewLabels = { REVIEWED: 'Reviewed rule', NEEDS_REVIEW: 'Rule needs review', UNREVIEWED: 'Unreviewed rule' }
 const target = computed(() => courses.value.find(course => course.id === targetId.value))
-const resultReason = computed(() => result.value?.reason.replaceAll('NEEDS_REVIEW', 'needs review').replaceAll('UNREVIEWED', 'unreviewed'))
+const resultReason = computed(() => result.value?.reason?.replaceAll('NEEDS_REVIEW', 'needs review').replaceAll('UNREVIEWED', 'unreviewed'))
 const courseNames = computed(() => Object.fromEntries(courses.value.map(course => [course.id, course.code])))
-const sameTermChoices = computed(() => courses.value.filter(course => course.id !== targetId.value))
+const sameTermChoices = computed(() => courses.value.filter(course => props.semester || course.id !== targetId.value))
+const selectedCredits = computed(() => courses.value.filter(course => concurrent.value.includes(course.id)).reduce((sum, course) => sum + course.credits, 0))
 
 function clearEvaluation() {
   evaluationRequest?.abort()
@@ -37,7 +40,7 @@ function clearEvaluation() {
   error.value = ''
 }
 watch([targetId, completed, concurrent], clearEvaluation, { deep: true, flush: 'sync' })
-watch(targetId, id => { concurrent.value = concurrent.value.filter(courseId => courseId !== id) }, { flush: 'sync' })
+watch(targetId, id => { if (!props.semester) concurrent.value = concurrent.value.filter(courseId => courseId !== id) }, { flush: 'sync' })
 
 async function loadCatalog() {
   catalogRequest?.abort()
@@ -84,23 +87,34 @@ function validResult(data, id) {
 async function evaluate() {
   if (checking.value || !targetId.value) return
   clearEvaluation()
+  if (props.semester && !concurrent.value.length) {
+    error.value = 'Select at least one proposed course.'
+    return
+  }
   const id = targetId.value
+  const proposed = [...concurrent.value]
   const request = new AbortController()
   evaluationRequest = request
   checking.value = true
   let timedOut = false
   const timeout = setTimeout(() => { timedOut = true; request.abort() }, 8000)
   try {
-    const response = await fetch(`/api/catalog/courses/${encodeURIComponent(id)}/eligibility`, {
+    const response = await fetch(props.semester ? '/api/semesters/eligibility' : `/api/catalog/courses/${encodeURIComponent(id)}/eligibility`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: request.signal, cache: 'no-store',
       body: JSON.stringify({
         completedCourses: completed.value.map(({ courseId, grade, creditEarned }) => ({ courseId, grade, creditEarned: creditEarned === 'true' })),
-        concurrentCourses: concurrent.value,
+        ...(props.semester ? { proposedCourses: proposed } : { concurrentCourses: proposed }),
       }),
     })
     if (!response.ok) throw new Error(response.status === 400 ? 'invalid' : 'unavailable')
     const data = await response.json()
-    if (!validResult(data, id)) throw new Error('Unexpected result')
+    const valid = props.semester
+      ? data && statuses.includes(data.status) && Array.isArray(data.courses) && data.courses.length === proposed.length
+        && data.courses.every((course, index) => validResult(course, proposed[index]))
+        && data.status === (data.courses.some(course => course.status === 'BLOCKED') ? 'BLOCKED'
+          : data.courses.some(course => course.status === 'MANUAL_REVIEW') ? 'MANUAL_REVIEW' : 'SATISFIED')
+      : validResult(data, id)
+    if (!valid) throw new Error('Unexpected result')
     if (evaluationRequest === request) {
       result.value = data
       await nextTick()
@@ -113,7 +127,7 @@ async function evaluate() {
     if (evaluationRequest === request) error.value = timedOut
       ? 'The check took too long. Your entries are still here. Try again.'
       : failure.message === 'invalid' ? 'Some evidence was not accepted. Check grades and earned credit, then try again.'
-        : 'Could not check this course. Your entries are still here. Try again.'
+        : `Could not check this ${props.semester ? 'semester' : 'course'}. Your entries are still here. Try again.`
   } finally {
     clearTimeout(timeout)
     if (evaluationRequest === request) { checking.value = false; evaluationRequest = null }
@@ -128,9 +142,9 @@ onUnmounted(() => { catalogRequest?.abort(); clearEvaluation() })
 
 <template>
   <section class="hero eligibility-hero">
-    <p class="eyebrow">Course eligibility · Sample catalog</p>
-    <h1>Check your next course.</h1>
-    <p class="intro">See how your completed courses and same-term enrollment meet a course’s stored requirements.</p>
+    <p class="eyebrow">{{ semester ? 'Semester check' : 'Course eligibility' }} · Sample catalog</p>
+    <h1>{{ semester ? 'Check a semester together.' : 'Check your next course.' }}</h1>
+    <p class="intro">{{ semester ? 'Choose courses for one target term. Check each stored rule against prior credit and the courses you would take together.' : 'See how your completed courses and same-term enrollment meet a course’s stored requirements.' }}</p>
     <p class="scope-note">This checks a small catalog sample. Results do not verify a full schedule, registration availability, or graduation eligibility.</p>
   </section>
 
@@ -144,12 +158,15 @@ onUnmounted(() => { catalogRequest?.abort(); clearEvaluation() })
   <div v-else class="eligibility-layout">
     <form class="card evidence-form" @submit.prevent="evaluate">
       <p class="eyebrow">Your evidence</p>
-      <h2>Choose a course to check</h2>
+      <h2>{{ semester ? 'Build one proposed term' : 'Choose a course to check' }}</h2>
+      <template v-if="!semester">
       <label for="target-course">Target course</label>
       <select id="target-course" v-model="targetId" required>
         <option v-for="course in courses" :key="course.id" :value="course.id">{{ course.code }} · {{ course.title }} ({{ course.catalogYear }})</option>
       </select>
       <p v-if="target" class="field-help">{{ target.credits }} credit{{ target.credits === 1 ? '' : 's' }} · {{ target.catalogYear }} catalog <a v-if="catalogLink(target.sourceUrl)" :href="catalogLink(target.sourceUrl)" target="_blank" rel="noopener noreferrer">View catalog ↗</a></p>
+      </template>
+      <p v-else class="field-help">Add prior completed attempts, then select all courses you propose to take in the same term. Proposed courses are never treated as earned credit.</p>
 
       <fieldset>
         <legend>Completed before the target term</legend>
@@ -171,30 +188,37 @@ onUnmounted(() => { catalogRequest?.abort(); clearEvaluation() })
       </fieldset>
 
       <fieldset>
-        <legend>Enrollment in the same target term</legend>
-        <p class="field-help">Select courses you would take alongside the target course. This does not assume they have been passed or check their own requirements.</p>
+        <legend>{{ semester ? 'Proposed courses in this term' : 'Enrollment in the same target term' }}</legend>
+        <p class="field-help">{{ semester ? 'Every selected course is checked. A satisfied course result assumes the selected classmates are enrolled; a blocker in any course blocks the semester.' : 'Select courses you would take alongside the target course. This does not assume they have been passed or check their own requirements.' }}</p>
         <div class="concurrent-options">
           <label v-for="course in sameTermChoices" :key="course.id" class="checkbox-label"><input v-model="concurrent" type="checkbox" :value="course.id" /><span><strong>{{ course.code }}</strong> <span class="field-help">{{ course.title }} · {{ course.catalogYear }}</span></span></label>
         </div>
+        <p v-if="semester" class="field-help">{{ concurrent.length }} selected · {{ selectedCredits }} credits. Credit caps, offerings, and timetable conflicts are not checked.</p>
       </fieldset>
       <p class="field-help">Entries stay on this page only. Reloading or leaving clears them; nothing is saved to your profile.</p>
-      <button type="submit" :disabled="checking">{{ checking ? 'Checking requirements…' : 'Check course requirements' }}</button>
+      <button type="submit" :disabled="checking">{{ checking ? 'Checking requirements…' : semester ? 'Check semester requirements' : 'Check course requirements' }}</button>
       <p v-if="error" class="form-error" role="alert">{{ error }}</p>
     </form>
 
     <section class="card results-panel" aria-labelledby="results-title" :aria-busy="checking">
       <p class="eyebrow">The result</p>
-      <h2 id="results-title" ref="resultsTitle" tabindex="-1">{{ target?.code }} requirements</h2>
+      <h2 id="results-title" ref="resultsTitle" tabindex="-1">{{ semester ? 'Semester requirements' : `${target?.code} requirements` }}</h2>
       <div role="status" aria-live="polite" aria-atomic="true">
-        <p v-if="checking">Checking the stored rule against your evidence…</p>
+        <p v-if="checking">{{ semester ? 'Checking every selected course against your evidence…' : 'Checking the stored rule against your evidence…' }}</p>
         <div v-else-if="result" class="result-summary" :class="result.status.toLowerCase()">
-          <h3>{{ statusLabels[result.status] }}</h3>
-          <p>{{ resultReason }}</p>
-          <p class="field-help">{{ result.reviewStatus ? reviewLabels[result.reviewStatus] : 'No stored rule available' }}</p>
+          <h3>{{ semester ? semesterLabels[result.status] : statusLabels[result.status] }}</h3>
+          <p>{{ semester ? 'All selected courses must meet their stored rules. Review each course below, including unresolved checks.' : resultReason }}</p>
+          <p v-if="!semester" class="field-help">{{ result.reviewStatus ? reviewLabels[result.reviewStatus] : 'No stored rule available' }}</p>
         </div>
-        <p v-else class="result-placeholder">Add your evidence, then check the course. Changing any entry clears the previous result.</p>
+        <p v-else class="result-placeholder">Add your evidence, then check {{ semester ? 'the semester' : 'the course' }}. Changing any entry clears the previous result.</p>
       </div>
       <ul v-if="result?.condition" class="condition-list root-conditions"><ConditionTree :condition="result.condition" :course-names="courseNames" /></ul>
+      <article v-for="course in (result?.courses || [])" :key="course.courseId" class="semester-course-result">
+        <h3>{{ courseNames[course.courseId] || course.courseId }} <span class="result-badge" :class="course.status.toLowerCase()">{{ statusLabels[course.status] }}</span></h3>
+        <p class="field-help">{{ course.reviewStatus ? reviewLabels[course.reviewStatus] : 'No stored rule available' }}</p>
+        <p v-if="!course.condition">{{ course.reason }}</p>
+        <ul v-if="course.condition" class="condition-list root-conditions"><ConditionTree :condition="course.condition" :course-names="courseNames" /></ul>
+      </article>
       <p v-if="result" class="scope-note">A satisfied rule applies only to this course’s stored conditions. Other course rules and manual checks may still be unresolved.</p>
     </section>
   </div>
