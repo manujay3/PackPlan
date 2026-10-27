@@ -153,7 +153,8 @@ including provenance, review status, and the nested expression. Responses
 disable caching. A course without a stored rule (or an unknown course ID)
 returns HTTP 404; this means no rule is available, not that enrollment is
 unrestricted. The endpoint reads the database and does not import bundled
-data. Rules are not yet used for eligibility checks, and `catalogReady` remains false.
+data. The eligibility endpoint evaluates stored rules against supplied evidence;
+`catalogReady` remains false.
 The same explicit rule import flag also imports CSC 116 and CSC 217 rules.
 CSC 217 is reviewed: CSC 116 with C or better, plus CSC 216 completed before
 or concurrently. CSC 116 now models `(E 115 OR COS 100) AND (MA 121 OR MA 131
@@ -161,6 +162,16 @@ OR MA 141)` with prior or concurrent completion and no catalog-specified
 minimum grades. It remains `NEEDS_REVIEW` because its seat-reservation note
 is an `unsupported` check requiring manual review.
 See [CSC 116/217 source review and limitations](docs/sample-course-rules.md).
+
+### Enrollment rule evaluation
+
+`POST /api/catalog/courses/{courseId}/eligibility` evaluates a stored enrollment
+rule against completed attempts and concurrent enrollment for a target term.
+It returns `SATISFIED`, `BLOCKED`, or `MANUAL_REVIEW` with a condition tree.
+Missing rules and unresolved conditions require manual review. The request is
+not saved. `SATISFIED` applies only to the stored rule; it does not verify an
+entire schedule, registration availability, or graduation eligibility.
+See [evidence format, examples, and evaluation behavior](docs/eligibility.md).
 See [rule review and live verification](docs/course-rule-review.md) for the
 timing review evidence, import instructions, and repeatable live check.
 

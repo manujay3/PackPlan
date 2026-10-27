@@ -92,7 +92,8 @@ rules already saved during that startup.
 review status, source evidence, and expression. In particular CSC 116 returns
 HTTP 200 with `NEEDS_REVIEW`, both OR groups, and the unsupported seat check; a missing stored rule
 returns 404. Review status and unsupported checks remain separate from catalog
-readiness, which is still false. No eligibility evaluator exists yet.
+readiness, which is still false. The [eligibility evaluator](eligibility.md)
+checks these stored rules while preserving manual-review conditions.
 
 ## Initial three-rule verification — October 26, 2026
 

@@ -125,7 +125,8 @@ application images were not rebuilt. This verifies sequential imports only.
 
 Catalog readiness remains false: other course rules and program requirements
 are incomplete. Persisted rules are now exposed through the catalog API;
-eligibility evaluation remains unimplemented.
+the [eligibility evaluator](eligibility.md) now checks their conditions without
+changing catalog readiness.
 
 The API addition passed all 38 backend tests on October 26. Its Spring MVC
 tests compare the entire JSON response to the sample rule and check uncached
