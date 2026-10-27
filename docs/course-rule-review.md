@@ -43,7 +43,8 @@ CSC 116 metadata is now included in the bundled course sample: Introduction
 to Computing - Java, 3 credits, in the 2026-2027 catalog. Its identity, title,
 and credits were checked against the CSC source page and the local snapshot,
 whose checksum matches the bundled source checksum. This metadata review
-does not cover CSC 116's own enrollment rules, which remain unmodeled.
+does not establish a complete enrollment check. CSC 116's corequisites are
+now modeled; its seat-reservation condition still requires manual review.
 The CSC 216 rule's course references now exist in the bundled sample.
 
 `CourseRuleLoader.load(resource, catalog)` reads a draft and validates its

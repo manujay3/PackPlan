@@ -36,17 +36,48 @@ not two prerequisites that must each be completed first.
 The catalog lists alternatives in computing environments and calculus. The
 minor advising pathways identify the grouping as (E 115 or COS 100) AND
 (MA 121 or MA 131 or MA 141), with prior or concurrent completion permitted.
-The sample catalog contains none of these five course records. Rather than
-create dangling references or remove the condition, the rule preserves the
-entire corequisite clause as an `unsupported` expression with an explanation.
-The catalog's seat-reservation note is a second `unsupported` condition. It
+The sample catalog now includes all five dependency courses, and the rule
+contains an AND of two OR groups with year-specific course references. Each
+alternative permits prior or concurrent completion and records no specified
+minimum grade. The catalog's seat-reservation note remains an `unsupported` condition. It
 must not be interpreted as excluding every non-CS major.
 
-The record remains `NEEDS_REVIEW`. Next, import reviewed metadata for the five
-dependencies with their own source provenance, replace the unsupported
-corequisite clause with nested AND/OR course expressions, and retain manual
-review for section/program seat reservations. Do not copy the minor's admission
+The record remains `NEEDS_REVIEW` because section/program seat reservations
+still require manual review. Do not copy the minor's admission
 grade thresholds into this course's enrollment rule.
+
+## Dependency metadata review — October 26, 2026
+
+All three subject pages identify the 2026–2027 catalog. Each was retrieved
+at `2026-10-27T01:45:42Z` (October 26 in New York). Reviewed metadata:
+
+| Course | Title | Credits | Source |
+| --- | --- | --- | --- |
+| E 115 | Introduction to Computing Environments | 1 | [Engineering](https://catalog.ncsu.edu/course-descriptions/e/) |
+| COS 100 | Science of Change | 2 | [College of Sciences](https://catalog.ncsu.edu/course-descriptions/cos/) |
+| MA 121 | Elements of Calculus | 3 | [Mathematics](https://catalog.ncsu.edu/course-descriptions/ma/) |
+| MA 131 | Calculus for Life and Management Sciences A | 3 | [Mathematics](https://catalog.ncsu.edu/course-descriptions/ma/) |
+| MA 141 | Calculus I | 4 | [Mathematics](https://catalog.ncsu.edu/course-descriptions/ma/) |
+
+SHA-256 of downloaded response bytes:
+
+- Engineering: `5e0d246bc07b44be75d01bc7a2ee52bdb0f0d457f55bf8f39654b44315adb3bb`
+- College of Sciences: `46d64c066104cd2563b32dd8e639b0108a2c5f6547c3f93bb4caa14aae109cb8`
+- Mathematics: `2465fb329fdb08a788b73a3e4ce9a4785d610d1b063f186dffbbb284671b9615`
+
+The course JSON now supports an optional per-course `source` object with URL,
+SHA-256, and retrieval time. An explicit source requires all three fields.
+Older records inherit the existing root URL/checksum; their retrieval time is
+unknown and remains null. The repository resolves each course's source before
+writing it, and the course API exposes the resolved URL/checksum plus the
+additive `retrievedAt` field. Existing records without this database property
+remain readable.
+
+This review covers identity, title, and credit hours only. It does not review
+the five courses' own enrollment rules, placement exams, credit exclusions,
+or program restrictions. Those courses still return 404 from the rule endpoint
+until their rules are modeled. Their inclusion as CSC 116 alternatives does
+not establish that a student can enroll in them.
 
 ## Import and API behavior
 
@@ -59,11 +90,11 @@ rules already saved during that startup.
 
 `GET /api/catalog/courses/{courseId}/rule` returns each stored record with its
 review status, source evidence, and expression. In particular CSC 116 returns
-HTTP 200 with `NEEDS_REVIEW` and both unsupported checks; a missing stored rule
+HTTP 200 with `NEEDS_REVIEW`, both OR groups, and the unsupported seat check; a missing stored rule
 returns 404. Review status and unsupported checks remain separate from catalog
 readiness, which is still false. No eligibility evaluator exists yet.
 
-## Verification — October 26, 2026
+## Initial three-rule verification — October 26, 2026
 
 All 42 backend tests passed with Java 21. The new tests check CSC 217's exact
 grade/timing expression, CSC 116's unsupported clauses and retained review
@@ -78,3 +109,20 @@ course. The local database now contains all three records. This checks
 sequential imports and MockMvc with a live repository, not concurrent imports,
 a running HTTP server, or the frontend proxy. Application images were not
 rebuilt; Neo4j remains running.
+
+## Eight-course verification — October 26, 2026
+
+All 53 backend tests passed after adding the five dependencies and replacing
+CSC 116's corequisite placeholder. Tests check exact AND/OR structure, timing,
+unspecified grade thresholds, retained manual seat review, rejection of every
+missing alternative, explicit-source validation, legacy provenance fallback,
+and metadata persistence/API responses across all five new courses.
+
+The extended live integration check passed against local Neo4j. After each
+of two imports and a startup with imports disabled, it verified all eight
+courses' metadata and source evidence, one course node per ID, all three
+rules and their MVC responses, and one rule/link per owning course. It also
+checked the course-list MVC response against the real repository. The local
+database now holds the eight-course sample and structured CSC 116 rule.
+The same sequential-import and MockMvc limits apply; application images were
+not rebuilt, and Neo4j remains running. Catalog readiness remains false.

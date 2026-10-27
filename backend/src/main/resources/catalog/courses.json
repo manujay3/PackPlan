@@ -29,6 +29,76 @@
       "title": "Software Development Fundamentals Lab",
       "credits": 1,
       "reviewStatus": "REVIEWED"
+    },
+    {
+      "id": "e-115-2026-2027",
+      "code": "E 115",
+      "subject": "E",
+      "number": "115",
+      "title": "Introduction to Computing Environments",
+      "credits": 1,
+      "reviewStatus": "REVIEWED",
+      "source": {
+        "sourceUrl": "https://catalog.ncsu.edu/course-descriptions/e/",
+        "sourceSha256": "5e0d246bc07b44be75d01bc7a2ee52bdb0f0d457f55bf8f39654b44315adb3bb",
+        "retrievedAt": "2026-10-27T01:45:42Z"
+      }
+    },
+    {
+      "id": "cos-100-2026-2027",
+      "code": "COS 100",
+      "subject": "COS",
+      "number": "100",
+      "title": "Science of Change",
+      "credits": 2,
+      "reviewStatus": "REVIEWED",
+      "source": {
+        "sourceUrl": "https://catalog.ncsu.edu/course-descriptions/cos/",
+        "sourceSha256": "46d64c066104cd2563b32dd8e639b0108a2c5f6547c3f93bb4caa14aae109cb8",
+        "retrievedAt": "2026-10-27T01:45:42Z"
+      }
+    },
+    {
+      "id": "ma-121-2026-2027",
+      "code": "MA 121",
+      "subject": "MA",
+      "number": "121",
+      "title": "Elements of Calculus",
+      "credits": 3,
+      "reviewStatus": "REVIEWED",
+      "source": {
+        "sourceUrl": "https://catalog.ncsu.edu/course-descriptions/ma/",
+        "sourceSha256": "2465fb329fdb08a788b73a3e4ce9a4785d610d1b063f186dffbbb284671b9615",
+        "retrievedAt": "2026-10-27T01:45:42Z"
+      }
+    },
+    {
+      "id": "ma-131-2026-2027",
+      "code": "MA 131",
+      "subject": "MA",
+      "number": "131",
+      "title": "Calculus for Life and Management Sciences A",
+      "credits": 3,
+      "reviewStatus": "REVIEWED",
+      "source": {
+        "sourceUrl": "https://catalog.ncsu.edu/course-descriptions/ma/",
+        "sourceSha256": "2465fb329fdb08a788b73a3e4ce9a4785d610d1b063f186dffbbb284671b9615",
+        "retrievedAt": "2026-10-27T01:45:42Z"
+      }
+    },
+    {
+      "id": "ma-141-2026-2027",
+      "code": "MA 141",
+      "subject": "MA",
+      "number": "141",
+      "title": "Calculus I",
+      "credits": 4,
+      "reviewStatus": "REVIEWED",
+      "source": {
+        "sourceUrl": "https://catalog.ncsu.edu/course-descriptions/ma/",
+        "sourceSha256": "2465fb329fdb08a788b73a3e4ce9a4785d610d1b063f186dffbbb284671b9615",
+        "retrievedAt": "2026-10-27T01:45:42Z"
+      }
     }
   ]
 }

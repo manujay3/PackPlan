@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.packplan.catalog.model.CatalogCourses;
 import com.packplan.catalog.model.ReviewStatus;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.neo4j.driver.*;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -51,8 +53,9 @@ class CatalogCoursesFlowTest {
         });
     }
 
-    @Test
-    void persistsCourseByStableIdAndReadsAllMetadata() throws Exception {
+    @ParameterizedTest
+    @ValueSource(ints = {0, 3, 4, 5, 6, 7})
+    void persistsCourseByStableIdAndReadsAllMetadata(int index) throws Exception {
         var driver = mock(Driver.class);
         var session = mock(Session.class);
         var transaction = mock(TransactionContext.class);
@@ -64,14 +67,16 @@ class CatalogCoursesFlowTest {
         });
         when(transaction.run(anyString(), anyMap())).thenReturn(result);
         var catalog = sample();
-        var course = catalog.courses().getFirst();
+        var course = catalog.courses().get(index);
+        var source = catalog.sourceFor(course);
         var repository = new CatalogRepository(driver);
         repository.saveCourse(catalog, course);
-        var properties = Map.<String, Object>of(
+        var properties = new java.util.HashMap<String, Object>(Map.<String, Object>of(
                 "id", course.id(), "code", course.code(), "subject", course.subject(),
                 "number", course.number(), "title", course.title(), "credits", course.credits(),
-                "catalogYear", catalog.catalogYear(), "sourceUrl", catalog.sourceUrl(),
-                "sourceSha256", catalog.sourceSha256(), "reviewStatus", "REVIEWED");
+                "catalogYear", catalog.catalogYear(), "sourceUrl", source.sourceUrl(),
+                "sourceSha256", source.sourceSha256(), "reviewStatus", "REVIEWED"));
+        properties.put("retrievedAt", source.retrievedAt());
         verify(transaction).run(contains("MERGE (course:Course {id: $id})"), eq(properties));
         verify(result).consume();
         var record = mock(org.neo4j.driver.Record.class);
@@ -83,9 +88,16 @@ class CatalogCoursesFlowTest {
         });
         assertThat(repository.findCourses()).containsExactly(new CatalogRepository.CatalogCourse(
                 course.id(), course.code(), course.subject(), course.number(), course.title(),
-                course.credits(), catalog.catalogYear(), catalog.sourceUrl(), catalog.sourceSha256(),
-                ReviewStatus.REVIEWED));
-        verify(session, times(2)).close();
+                course.credits(), catalog.catalogYear(), source.sourceUrl(), source.sourceSha256(),
+                ReviewStatus.REVIEWED, source.retrievedAt()));
+        var mvc = MockMvcBuilders.standaloneSetup(new CatalogController(repository)).build();
+        var response = mvc.perform(get("/api/catalog/courses"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].sourceUrl").value(source.sourceUrl()))
+                .andExpect(jsonPath("$[0].sourceSha256").value(source.sourceSha256()));
+        if (source.retrievedAt() == null) response.andExpect(jsonPath("$[0].retrievedAt").isEmpty());
+        else response.andExpect(jsonPath("$[0].retrievedAt").value(source.retrievedAt()));
+        verify(session, times(3)).close();
     }
 
     @Test

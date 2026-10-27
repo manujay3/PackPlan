@@ -57,7 +57,7 @@ $env:JAVA_HOME = 'C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot'
 
 After startup completes, stop the process with Ctrl+C. Repeating the import updates the same nodes rather than creating duplicates. With the backend running normally, `GET http://localhost:8080/api/catalog/programs` returns the imported programs. `catalogReady` remains `false` because program requirements have not been modeled or reviewed.
 
-Course metadata for CSC 116, CSC 216, and CSC 217 is also available in `backend/src/main/resources/catalog/courses.json`. Import it explicitly with `--packplan.catalog.import-courses=true`; this flag is independent of the program import flag and defaults to false. Each course is merged by its year-specific ID, preserving its catalog year, source URL, source checksum, and review status. Repeating the import updates the same course nodes.
+Course metadata for CSC 116, CSC 216, CSC 217, E 115, COS 100, MA 121, MA 131, and MA 141 is available in `backend/src/main/resources/catalog/courses.json`. Import it explicitly with `--packplan.catalog.import-courses=true`; this flag is independent of the program import flag and defaults to false. Each course is merged by its year-specific ID, preserving its catalog year, source URL, source checksum, and review status. The five dependency courses carry their own subject-page provenance and retrieval times. Repeating the import updates the same course nodes. Course API responses include `retrievedAt` (null for older metadata without a recorded retrieval time).
 
 With Neo4j running, use Java 21 and Maven on macOS/Linux:
 
@@ -156,10 +156,10 @@ unrestricted. The endpoint reads the database and does not import bundled
 data. Rules are not yet used for eligibility checks, and `catalogReady` remains false.
 The same explicit rule import flag also imports CSC 116 and CSC 217 rules.
 CSC 217 is reviewed: CSC 116 with C or better, plus CSC 216 completed before
-or concurrently. CSC 116 remains `NEEDS_REVIEW`: its corequisite alternatives
-and seat-reservation note are preserved as `unsupported` checks because the
-five referenced courses and section reservations are outside this sample.
-Those checks require manual review and must not be treated as satisfied.
+or concurrently. CSC 116 now models `(E 115 OR COS 100) AND (MA 121 OR MA 131
+OR MA 141)` with prior or concurrent completion and no catalog-specified
+minimum grades. It remains `NEEDS_REVIEW` because its seat-reservation note
+is an `unsupported` check requiring manual review.
 See [CSC 116/217 source review and limitations](docs/sample-course-rules.md).
 See [rule review and live verification](docs/course-rule-review.md) for the
 timing review evidence, import instructions, and repeatable live check.

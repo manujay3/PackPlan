@@ -3,6 +3,7 @@ package com.packplan.catalog;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.packplan.PackPlanApplication;
 import com.packplan.catalog.model.CourseRule;
+import com.packplan.catalog.model.CatalogCourses;
 import com.packplan.catalog.model.ReviewStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
@@ -21,6 +22,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class CourseRuleImportIT {
     @Test
     void importsTwiceAndPreservesEachRuleOnNormalStartup() throws Exception {
+        CatalogCourses expectedCatalog;
+        try (var input = getClass().getResourceAsStream("/catalog/courses.json")) {
+            expectedCatalog = new ObjectMapper().readValue(input, CatalogCourses.class);
+        }
         var expectedRules = new java.util.ArrayList<CourseRule>();
         for (var number : new String[] {"116", "216", "217"}) {
             try (var input = getClass().getResourceAsStream("/catalog/drafts/csc-" + number + "-rule.json")) {
@@ -59,8 +64,23 @@ class CourseRuleImportIT {
                     }
                 }
                 var courses = context.getBean(CatalogRepository.class).findCourses();
-                assertThat(courses).extracting(CatalogRepository.CatalogCourse::id)
-                        .contains("csc-116-2026-2027", "csc-216-2026-2027", "csc-217-2026-2027");
+                for (var expected : expectedCatalog.courses()) {
+                    var source = expectedCatalog.sourceFor(expected);
+                    assertThat(courses).contains(new CatalogRepository.CatalogCourse(
+                            expected.id(), expected.code(), expected.subject(), expected.number(), expected.title(),
+                            expected.credits(), expectedCatalog.catalogYear(), source.sourceUrl(), source.sourceSha256(),
+                            expected.reviewStatus(), source.retrievedAt()));
+                    try (var session = context.getBean(Driver.class).session(SessionConfig.forDatabase("neo4j"))) {
+                        assertThat(session.run("MATCH (c:Course {id: $id}) RETURN count(c) AS count",
+                                java.util.Map.of("id", expected.id())).single().get("count").asLong()).isEqualTo(1);
+                    }
+                }
+                MockMvcBuilders.standaloneSetup(context.getBean(CatalogController.class)).build()
+                        .perform(get("/api/catalog/courses"))
+                        .andExpect(status().isOk())
+                        .andExpect(header().string("Cache-Control", "no-store"))
+                        .andExpect(content().json(new ObjectMapper().writeValueAsString(courses),
+                                org.springframework.test.json.JsonCompareMode.STRICT));
             }
         }
     }

@@ -33,15 +33,18 @@ class CourseRuleDraftTest {
     }
 
     @Test
-    void csc116PreservesUnmodeledCorequisitesAndSeatReservationsForManualReview() throws Exception {
+    void csc116RequiresBothAlternativeGroupsAndRetainsSeatReservationsForManualReview() throws Exception {
         var rule = load("116");
         assertThat(rule.reviewStatus()).isEqualTo(ReviewStatus.NEEDS_REVIEW);
         assertThat(rule.expression()).isInstanceOfSatisfying(AllOf.class, group -> {
-            assertThat(group.children()).hasSize(2).allMatch(Unsupported.class::isInstance);
-            var corequisites = (Unsupported) group.children().getFirst();
-            assertThat(corequisites.originalText()).isEqualTo(
-                    "Co-requisite: E 115 or COS 100 and MA 121 or MA 131 or MA 141");
-            assertThat(corequisites.reason()).contains("(E 115 or COS 100) AND (MA 121 or MA 131 or MA 141)");
+            assertThat(group.children()).hasSize(3);
+            assertThat(group.children().get(0)).isEqualTo(new AnyOf(java.util.List.of(
+                    new Course("e-115-2026-2027", Timing.COMPLETED_BEFORE_OR_CONCURRENT, MinimumGrade.NOT_SPECIFIED),
+                    new Course("cos-100-2026-2027", Timing.COMPLETED_BEFORE_OR_CONCURRENT, MinimumGrade.NOT_SPECIFIED))));
+            assertThat(group.children().get(1)).isEqualTo(new AnyOf(java.util.List.of(
+                    new Course("ma-121-2026-2027", Timing.COMPLETED_BEFORE_OR_CONCURRENT, MinimumGrade.NOT_SPECIFIED),
+                    new Course("ma-131-2026-2027", Timing.COMPLETED_BEFORE_OR_CONCURRENT, MinimumGrade.NOT_SPECIFIED),
+                    new Course("ma-141-2026-2027", Timing.COMPLETED_BEFORE_OR_CONCURRENT, MinimumGrade.NOT_SPECIFIED))));
             var seats = (Unsupported) group.children().getLast();
             assertThat(seats.originalText()).isEqualTo("Most seats reserved for Computer Science majors.");
             assertThat(seats.reason()).contains("not a blanket exclusion");

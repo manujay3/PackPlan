@@ -43,6 +43,7 @@ public class CatalogRepository {
                 course.catalogYear = $catalogYear,
                 course.sourceUrl = $sourceUrl,
                 course.sourceSha256 = $sourceSha256,
+                course.retrievedAt = $retrievedAt,
                 course.reviewStatus = $reviewStatus
             """;
     private static final String FIND_COURSES = """
@@ -51,7 +52,8 @@ public class CatalogRepository {
                    course.subject AS subject, course.number AS number,
                    course.title AS title, course.credits AS credits,
                    course.catalogYear AS catalogYear, course.sourceUrl AS sourceUrl,
-                   course.sourceSha256 AS sourceSha256, course.reviewStatus AS reviewStatus
+                   course.sourceSha256 AS sourceSha256, course.reviewStatus AS reviewStatus,
+                   course.retrievedAt AS retrievedAt
             ORDER BY course.id
             """;
 
@@ -95,7 +97,8 @@ public class CatalogRepository {
     }
 
     public void saveCourse(CatalogCourses catalog, CatalogCourses.Course course) {
-        var parameters = Map.<String, Object>of(
+        var source = catalog.sourceFor(course);
+        var parameters = new java.util.HashMap<String, Object>(Map.<String, Object>of(
                 "id", course.id(),
                 "code", course.code(),
                 "subject", course.subject(),
@@ -103,10 +106,11 @@ public class CatalogRepository {
                 "title", course.title(),
                 "credits", course.credits(),
                 "catalogYear", catalog.catalogYear(),
-                "sourceUrl", catalog.sourceUrl(),
-                "sourceSha256", catalog.sourceSha256(),
+                "sourceUrl", source.sourceUrl(),
+                "sourceSha256", source.sourceSha256(),
                 "reviewStatus", course.reviewStatus().name()
-        );
+        ));
+        parameters.put("retrievedAt", source.retrievedAt());
         try (var session = driver.session(SessionConfig.forDatabase("neo4j"))) {
             session.executeWrite(transaction -> {
                 transaction.run(SAVE_COURSE, parameters).consume();
@@ -127,7 +131,8 @@ public class CatalogRepository {
                     record.get("catalogYear").asString(),
                     record.get("sourceUrl").asString(),
                     record.get("sourceSha256").asString(),
-                    ReviewStatus.valueOf(record.get("reviewStatus").asString())
+                    ReviewStatus.valueOf(record.get("reviewStatus").asString()),
+                    record.get("retrievedAt").asString(null)
             ));
         }
     }
@@ -135,8 +140,15 @@ public class CatalogRepository {
     public record CatalogCourse(
             String id, String code, String subject, String number, String title,
             int credits, String catalogYear, String sourceUrl, String sourceSha256,
-            ReviewStatus reviewStatus
-    ) {}
+            ReviewStatus reviewStatus, String retrievedAt
+    ) {
+        public CatalogCourse(String id, String code, String subject, String number, String title,
+                             int credits, String catalogYear, String sourceUrl, String sourceSha256,
+                             ReviewStatus reviewStatus) {
+            this(id, code, subject, number, title, credits, catalogYear, sourceUrl, sourceSha256,
+                    reviewStatus, null);
+        }
+    }
 
     public record CatalogProgram(
             String id,

@@ -10,9 +10,44 @@
     "type": "allOf",
     "children": [
       {
-        "type": "unsupported",
-        "originalText": "Co-requisite: E 115 or COS 100 and MA 121 or MA 131 or MA 141",
-        "reason": "Requires (E 115 or COS 100) AND (MA 121 or MA 131 or MA 141), completed before or concurrently. These five courses are outside the bundled catalog; import and review their metadata before creating structured course references. Requires manual review."
+        "type": "anyOf",
+        "children": [
+          {
+            "type": "course",
+            "courseId": "e-115-2026-2027",
+            "timing": "COMPLETED_BEFORE_OR_CONCURRENT",
+            "minimumGrade": "NOT_SPECIFIED"
+          },
+          {
+            "type": "course",
+            "courseId": "cos-100-2026-2027",
+            "timing": "COMPLETED_BEFORE_OR_CONCURRENT",
+            "minimumGrade": "NOT_SPECIFIED"
+          }
+        ]
+      },
+      {
+        "type": "anyOf",
+        "children": [
+          {
+            "type": "course",
+            "courseId": "ma-121-2026-2027",
+            "timing": "COMPLETED_BEFORE_OR_CONCURRENT",
+            "minimumGrade": "NOT_SPECIFIED"
+          },
+          {
+            "type": "course",
+            "courseId": "ma-131-2026-2027",
+            "timing": "COMPLETED_BEFORE_OR_CONCURRENT",
+            "minimumGrade": "NOT_SPECIFIED"
+          },
+          {
+            "type": "course",
+            "courseId": "ma-141-2026-2027",
+            "timing": "COMPLETED_BEFORE_OR_CONCURRENT",
+            "minimumGrade": "NOT_SPECIFIED"
+          }
+        ]
       },
       {
         "type": "unsupported",
