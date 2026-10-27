@@ -1,12 +1,14 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import ConditionTree from '../components/ConditionTree.vue'
-import { grades, noCreditGrades, validSemesterResult } from '../eligibility.js'
+import PlanAlternatives from '../components/PlanAlternatives.vue'
+import { grades, noCreditGrades } from '../eligibility.js'
+import { validPlan } from '../planStorage.js'
+import { checkPlanAgainstCurrentRules } from '../planChecker.js'
 
 const courses = ref([])
 const catalogState = ref('loading')
-const terms = ref([{ id: 1, label: '', creditCap: 16, proposedCourses: [], carryPassed: false, assumedGrade: 'C' },
-  { id: 2, label: '', creditCap: 16, proposedCourses: [], carryPassed: false, assumedGrade: 'C' }])
+const terms = ref([{ id: 1, label: 'Spring 2027', creditCap: 16, proposedCourses: [], carryPassed: false, assumedGrade: 'C' }])
 const completedCourses = ref([])
 const results = ref([])
 const checking = ref(false)
@@ -42,7 +44,7 @@ function addTerm() {
   terms.value.push({ id: nextTermId++, label: '', creditCap: 16, proposedCourses: [], carryPassed: false, assumedGrade: 'C' })
 }
 function removeTerm(index) {
-  if (terms.value.length <= 2) return
+  if (terms.value.length <= 1) return
   terms.value.splice(index, 1)
 }
 function addAttempt() { completedCourses.value.push({ key: nextAttemptId++, courseId: '', grade: '', creditEarned: '' }) }
@@ -50,42 +52,34 @@ function gradeChanged(attempt) { if (noCreditGrades.has(attempt.grade)) attempt.
 function attemptPayload() {
   return completedCourses.value.map(({ courseId, grade, creditEarned }) => ({ courseId, grade, creditEarned: creditEarned === 'true' }))
 }
-function validatePlan() {
-  if (!terms.value.every(term => Number.isInteger(Number(term.creditCap)) && Number(term.creditCap) > 0 && Number(term.creditCap) <= 2147483647
-    && term.proposedCourses.length > 0 && new Set(term.proposedCourses).size === term.proposedCourses.length)) return 'Add at least one course to every term and enter a positive whole-number credit cap.'
-  if (completedCourses.value.some(attempt => !attempt.courseId || !attempt.grade || !['true', 'false'].includes(attempt.creditEarned))) return 'Complete or remove each prior course attempt.'
-  if (completedCourses.value.some(attempt => noCreditGrades.has(attempt.grade) && attempt.creditEarned === 'true')) return 'Failed or non-credit outcomes cannot earn credit.'
-  return ''
+function getPlan() {
+  const plan = {
+    completedCourses: attemptPayload(),
+    terms: terms.value.map(term => ({ label: term.label.trim(), creditCap: Number(term.creditCap),
+      proposedCourses: [...term.proposedCourses], carryPassed: term.carryPassed, assumedGrade: term.assumedGrade })),
+  }
+  if (!validPlan(plan)) {
+    error.value = 'Add at least one course to every term, complete each prior attempt, and enter a positive whole-number cap.'
+    return null
+  }
+  return plan
+}
+function loadPlan(plan) {
+  clearResults()
+  completedCourses.value = plan.completedCourses.map(attempt => ({ ...attempt, creditEarned: String(attempt.creditEarned), key: nextAttemptId++ }))
+  terms.value = plan.terms.map(term => ({ ...term, proposedCourses: [...term.proposedCourses], id: nextTermId++ }))
 }
 async function checkPlan() {
   clearResults()
-  const invalid = validatePlan()
-  if (invalid) { error.value = invalid; return }
+  const plan = getPlan()
+  if (!plan) return
   const controller = new AbortController()
   request = controller
   checking.value = true
   let timedOut = false
   const timeout = setTimeout(() => { timedOut = true; controller.abort() }, 30000)
-  const output = []
-  const priorEvidence = attemptPayload()
-  const assumedFromEarlierTerms = []
   try {
-    for (const term of terms.value) {
-      const evidence = {
-        completedCourses: [...priorEvidence, ...assumedFromEarlierTerms],
-        proposedCourses: [...term.proposedCourses],
-        creditCap: Number(term.creditCap),
-      }
-      const response = await fetch('/api/semesters/eligibility', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store', signal: controller.signal,
-        body: JSON.stringify(evidence),
-      })
-      if (!response.ok) throw new Error('One or more term checks could not be completed. Your draft is still here; try again.')
-      const result = await response.json()
-      if (!validSemesterResult(result, evidence)) throw new Error('The server returned an unexpected result. Your draft is still here; try again.')
-      output.push(result)
-      if (term.carryPassed) assumedFromEarlierTerms.push(...term.proposedCourses.map(courseId => ({ courseId, grade: term.assumedGrade, creditEarned: true })))
-    }
+    const output = await checkPlanAgainstCurrentRules(plan, { signal: controller.signal })
     if (request === controller) results.value = output
   } catch (failure) {
     if (request === controller) error.value = timedOut ? 'The plan check took too long. Your draft is still here; try again.'
@@ -103,7 +97,7 @@ onUnmounted(clearResults)
   <section class="hero eligibility-hero">
     <p class="eyebrow">Multi-term plan · Sample catalog</p>
     <h1>Put courses in sequence.</h1>
-    <p class="intro">Arrange courses across two or more terms and check each term against the stored sample rules and the assumptions carried forward.</p>
+    <p class="intro">Arrange courses in Spring 2027 or add terms before or after it. Check each term against the stored sample rules and the assumptions carried forward.</p>
     <p class="scope-note">Term order follows the order shown here. Labels, course offerings, and future passing outcomes are planning assumptions; none are verified. This sample cannot confirm graduation eligibility or registration.</p>
   </section>
 
@@ -129,9 +123,9 @@ onUnmounted(clearResults)
       <button type="button" class="secondary-button" @click="addAttempt">+ Add prior attempt</button>
     </section>
 
-    <section class="planner-terms" aria-label="Terms in planned order">
+    <section class="planner-terms" :class="{ 'single-planner-term': terms.length === 1 }" aria-label="Terms in planned order">
       <article v-for="(term, index) in terms" :key="term.id" class="card planner-term">
-        <div class="planner-term-heading"><div><p class="eyebrow">Term {{ index + 1 }}</p><h2>{{ term.label || `Term ${index + 1}` }}</h2></div><button v-if="terms.length > 2" type="button" class="text-button" :aria-label="`Remove term ${index + 1}`" @click="removeTerm(index)">Remove term</button></div>
+        <div class="planner-term-heading"><div><p class="eyebrow">Term {{ index + 1 }}</p><h2>{{ term.label || `Term ${index + 1}` }}</h2></div><button v-if="terms.length > 1" type="button" class="text-button" :aria-label="`Remove term ${index + 1}`" @click="removeTerm(index)">Remove term</button></div>
         <label :for="`term-name-${term.id}`">Term label</label>
         <input :id="`term-name-${term.id}`" v-model="term.label" class="credit-cap-input" maxlength="60" placeholder="For example, Fall 2026" />
         <label :for="`term-cap-${term.id}`">Credit cap</label>
@@ -162,4 +156,5 @@ onUnmounted(clearResults)
     <p v-if="error" class="form-error" role="alert">{{ error }}</p>
     <p v-if="results.length" class="scope-note" role="status">Checked each term separately against current stored rules. Results are not stored. No result is a registration or graduation approval.</p>
   </template>
+  <PlanAlternatives v-if="catalogState === 'ready'" :get-plan="getPlan" :course-names="courseNames" @load="loadPlan" />
 </template>

@@ -19,8 +19,8 @@ async function setup(page) {
   await page.getByLabel('Your semester credit cap').fill('15')
 }
 async function pair(page) {
-  await page.getByRole('checkbox', { name: /CSC 216/ }).check()
-  await page.getByRole('checkbox', { name: /CSC 217/ }).check()
+  await page.locator('.concurrent-options').getByRole('checkbox', { name: /CSC 216/ }).check()
+  await page.locator('.concurrent-options').getByRole('checkbox', { name: /CSC 217/ }).check()
 }
 
 test('validates a proposed pair, shows each course, and clears results when a course is removed', async ({ page }, testInfo) => {
@@ -48,7 +48,7 @@ test('validates a proposed pair, shows each course, and clears results when a co
   await expect(page.locator('.semester-course-result')).toHaveCount(2)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   await page.screenshot({ path: testInfo.outputPath('semester.png'), fullPage: true })
-  await page.getByRole('checkbox', { name: /CSC 217/ }).uncheck()
+  await page.locator('.concurrent-options').getByRole('checkbox', { name: /CSC 217/ }).uncheck()
   await expect(page.getByRole('heading', { name: 'Stored semester rules satisfied' })).toHaveCount(0)
   blocked = true
   await page.getByRole('button', { name: 'Check semester requirements', exact: true }).click()
@@ -59,7 +59,7 @@ test('validates a proposed pair, shows each course, and clears results when a co
 test('missing course rules keep the whole semester under review', async ({ page }) => {
   await page.route(endpoint, route => route.fulfill({ json: { status: 'MANUAL_REVIEW', creditLoad: creditLoad(), courses: [courseResult('ma-141-2026-2027', 'MANUAL_REVIEW')] } }))
   await setup(page)
-  await page.getByRole('checkbox', { name: /MA 141/ }).check()
+  await page.locator('.concurrent-options').getByRole('checkbox', { name: /MA 141/ }).check()
   await page.getByRole('button', { name: 'Check semester requirements', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Semester needs review' })).toBeVisible()
   await expect(page.getByText('No stored rule available', { exact: true })).toBeVisible()
@@ -77,7 +77,7 @@ test('rejects incomplete or inconsistent semester responses and preserves select
     await expect(page.getByRole('alert')).toContainText('Could not check this semester')
     await expect(page.getByRole('heading', { name: 'Stored semester rules satisfied' })).toHaveCount(0)
   }
-  await expect(page.getByRole('checkbox', { name: /CSC 216/ })).toBeChecked()
+  await expect(page.locator('.concurrent-options').getByRole('checkbox', { name: /CSC 216/ })).toBeChecked()
 })
 
 test('course and semester screens do not carry evidence between modes', async ({ page }) => {
@@ -86,7 +86,7 @@ test('course and semester screens do not carry evidence between modes', async ({
   await page.getByRole('link', { name: 'Check a course', exact: true }).click()
   await expect(page.getByLabel('Target course')).toBeVisible()
   await page.getByRole('link', { name: 'Check a semester', exact: true }).click()
-  await expect(page.getByRole('checkbox', { name: /CSC 216/ })).not.toBeChecked()
+  await expect(page.locator('.concurrent-options').getByRole('checkbox', { name: /CSC 216/ })).not.toBeChecked()
   await page.reload()
   await expect(page.getByRole('heading', { name: 'Check a semester together.' })).toBeVisible()
   await expect(page.getByLabel('Your semester credit cap')).toHaveValue('')

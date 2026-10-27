@@ -203,8 +203,8 @@ onUnmounted(() => { catalogRequest?.abort(); clearEvaluation() })
         <legend>{{ semester ? 'Proposed courses in this term' : 'Enrollment in the same target term' }}</legend>
         <p class="field-help">{{ semester ? 'Every selected course is checked. A satisfied course result assumes the selected classmates are enrolled; a blocker in any course blocks the semester.' : 'Select courses you would take alongside the target course. This does not assume they have been passed or check their own requirements.' }}</p>
         <div class="concurrent-options">
-          <label v-for="course in sameTermChoices" :key="course.id" class="checkbox-label"><input v-model="concurrent" type="checkbox" :value="course.id" /><span><strong>{{ course.code }}</strong> <span class="field-help">{{ course.title }} · {{ course.catalogYear }}</span></span></label>
-          <label v-for="id in missingProposed" :key="id" class="checkbox-label"><input v-model="concurrent" type="checkbox" :value="id" /><span>{{ id }} <span class="field-help">Not in the current catalog; retained from a saved alternative. Uncheck to remove it.</span></span></label>
+          <label v-for="course in sameTermChoices" :key="course.id" class="checkbox-label"><input v-model="concurrent" type="checkbox" :value="course.id" :aria-label="`Plan ${course.code} in this term`" /><span><strong>{{ course.code }}</strong> <span class="field-help">{{ course.title }} · {{ course.catalogYear }}</span></span></label>
+          <label v-for="id in missingProposed" :key="id" class="checkbox-label"><input v-model="concurrent" type="checkbox" :value="id" :aria-label="`Plan ${id} in this term`" /><span>{{ id }} <span class="field-help">Not in the current catalog; retained from a saved alternative. Uncheck to remove it.</span></span></label>
         </div>
         <template v-if="semester">
           <p class="field-help">{{ concurrent.length }} selected · {{ selectedCredits === null ? 'Credit total unavailable' : `${selectedCredits} credits (catalog preview)` }}. The server verifies the credit load when you check.</p>
@@ -214,7 +214,7 @@ onUnmounted(() => { catalogRequest?.abort(); clearEvaluation() })
           <div v-if="concurrent.length" class="offering-assumptions">
             <p><strong>Offering assumptions</strong></p>
             <p class="field-help">Mark courses you are assuming will be offered. This is your planning assumption; availability is not checked.</p>
-            <label v-for="id in concurrent" :key="id" class="checkbox-label"><input v-model="assumedOfferedCourses" type="checkbox" :value="id" /><span>{{ savedCourseNames[id] || `${id} · not in the current catalog` }} · assume offered</span></label>
+            <label v-for="id in concurrent" :key="id" class="checkbox-label"><input v-model="assumedOfferedCourses" type="checkbox" :value="id" :aria-label="`Assume ${savedCourseNames[id] || id} is offered`" /><span>{{ savedCourseNames[id] || `${id} · not in the current catalog` }} · assume offered</span></label>
           </div>
           <label for="credit-cap">Your semester credit cap</label>
           <input id="credit-cap" v-model.number="creditCap" class="credit-cap-input" type="number" min="1" step="1" required placeholder="Enter a credit limit" aria-describedby="credit-cap-help" />

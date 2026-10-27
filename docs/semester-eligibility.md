@@ -203,5 +203,5 @@ loads and rechecks a saved draft, and deletes both saves. Browser checks use
 isolated test storage and leave no demo saves there. No backend code changed
 for this feature and no catalog data was written. The local application remains
 running; container images were not rebuilt. Desktop and mobile comparison
-layouts were visually inspected. The ordinary browser command now skips six
-live instances (three scenarios at each viewport).
+layouts were visually inspected. The ordinary browser command now skips eight
+live instances (four real-backend scenarios at each viewport).

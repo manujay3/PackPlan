@@ -66,6 +66,7 @@ legend { font-weight: 750; padding: 0 10px 0 0; font-size: 17px; }
 .alternatives-panel { margin-top: 24px; }
 .planner-inputs { margin: 24px 0; }
 .planner-terms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 24px; }
+.planner-terms.single-planner-term { grid-template-columns: 1fr; }
 .planner-term { min-width: 0; }
 .planner-term > label, .assumption-grade > label { display: block; font-size: 14px; font-weight: 650; margin: 16px 0 6px; }
 .planner-term-heading { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
