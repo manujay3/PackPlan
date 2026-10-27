@@ -156,6 +156,7 @@ onUnmounted(() => { catalogRequest?.abort(); clearEvaluation() })
     <p class="intro">{{ semester ? 'Choose courses for one target term. Check each stored rule against prior credit and the courses you would take together.' : 'See how your completed courses and same-term enrollment meet a course’s stored requirements.' }}</p>
     <p class="scope-note">This checks a small catalog sample. Results do not verify a full schedule, registration availability, or graduation eligibility.</p>
     <a v-if="semester" href="#alternatives-title">Save or compare alternatives ↓</a>
+    <RouterLink v-if="semester" to="/planner">Arrange courses across terms →</RouterLink>
   </section>
 
   <section v-if="catalogState !== 'ready'" class="card" aria-live="polite">
