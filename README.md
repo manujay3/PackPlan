@@ -172,6 +172,9 @@ Missing rules and unresolved conditions require manual review. The request is
 not saved. `SATISFIED` applies only to the stored rule; it does not verify an
 entire schedule, registration availability, or graduation eligibility.
 See [evidence format, examples, and evaluation behavior](docs/eligibility.md).
+Open **Check a course** at `/eligibility` to enter completed attempts and
+same-term enrollment, then view the rule result and condition explanations.
+Entries clear on navigation or reload; editing evidence clears stale results.
 See [rule review and live verification](docs/course-rule-review.md) for the
 timing review evidence, import instructions, and repeatable live check.
 
@@ -186,6 +189,11 @@ npm.cmd run build
 ```
 
 `StatusControllerTest` starts the Spring application context and checks the API contract, including `catalogReady: false` and cache prevention. `DatabaseStatusControllerTest` uses a mocked driver to test successful query/session cleanup and safe HTTP 503 responses without taking down the API. These tests need no live database. Docker builds run all tests; the helper's `check` action additionally exercises the real frontend proxy, Java API, and Neo4j. Frontend build checks compilation; it does not establish browser behavior. See `docs/verification.md` for checks actually performed.
+
+From `frontend`, `npm run test:e2e` runs the eligibility screen's desktop and
+mobile browser checks with mocked APIs (Google Chrome required). The opt-in
+`npm run test:e2e:live` command on macOS/Linux checks the actual backend and
+imported Neo4j sample. See [browser verification and PowerShell instructions](docs/eligibility.md#browser-verification--october-26-2026).
 
 ## Curriculum scope and data
 

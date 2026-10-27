@@ -120,5 +120,66 @@ The existing status tests and eligibility API checks retain `catalogReady: false
 The live check read the current three persisted rules with all imports
 disabled, verified expected API outcomes through MockMvc, and confirmed the
 stored rules were unchanged. No student data was saved. Neo4j remains running;
-application images were not rebuilt. Frontend input and results screens are
-not implemented yet.
+application images were not rebuilt. Frontend entry and results are now
+available as described below.
+
+## Frontend course check
+
+Open `/eligibility` or choose **Check a course** in the navigation. The screen
+loads available courses from the course-list API. It supports:
+
+- A target course with its catalog year and source link.
+- Completed attempts with a grade/outcome and an explicit earned-credit choice.
+  Repeated attempts can be entered separately. Failed, unsatisfactory,
+  withdrawn, and incomplete outcomes cannot claim earned credit.
+- Checkboxes for enrollment alongside the target course in the same term.
+- A result summary and recursive AND/OR condition explanations. Text labels
+  distinguish satisfied, blocked, and manual-review conditions.
+
+Submitting focuses and scrolls to the result heading. Changing evidence or
+the target clears the previous result and cancels any pending check. Requests
+time out after eight seconds; errors retain the entered evidence for retry.
+Empty catalogs, unavailable services, missing rules, and malformed responses
+are handled explicitly. Evidence is held in page memory only and clears on
+navigation or reload. It is sent to the API for evaluation but is not persisted.
+
+The screen uses the existing sample catalog and exact course IDs. It cannot
+enter courses absent from that catalog, import transcripts, save a profile,
+or validate a complete plan.
+
+## Browser verification — October 26, 2026
+
+From `frontend`, with dependencies installed and Google Chrome available:
+
+```sh
+npm run build
+npm run test:e2e
+```
+
+The production build and 16 browser tests passed: eight scenarios each at
+desktop and mobile widths using Chrome. Tests cover request evidence, required
+fields, repeated attempts, earned-credit restrictions, result rendering/focus,
+edit invalidation, stale responses, loading/empty/error states, timeouts,
+retry, missing rules, malformed results, navigation, refresh, and horizontal
+overflow. Desktop and mobile screenshots were visually inspected. These tests
+mock API responses; mobile checks use Chrome emulation, not a physical device
+or Safari. Two live-test instances are intentionally skipped by this command.
+
+With the real backend on port 8080 and the existing sample in Neo4j, run the
+opt-in live browser check on macOS/Linux:
+
+```sh
+npm run test:e2e:live
+```
+
+For PowerShell, set `$env:PACKPLAN_LIVE_E2E = 'true'`, then run
+`npx playwright test tests/eligibility-live.spec.js --project=desktop` and remove
+the environment variable afterward. Both browser commands start Vite or reuse
+an existing local Vite server on port 5173.
+
+The live browser check passed through Vite's actual proxy, the running Spring
+Boot API, and local Neo4j. It exercised CSC 216 with qualifying credit, a grade
+below its threshold, CSC 116's unsupported seat condition, and MA 141's missing
+rule. Student evidence was not saved, and application container images were
+not rebuilt. An earlier four-worker run had a Chrome launch timeout before page
+execution; the final two-worker run passed all scenarios.

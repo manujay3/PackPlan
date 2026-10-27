@@ -51,7 +51,8 @@ onUnmounted(() => controller?.abort())
   <section class="hero">
     <p class="eyebrow">NC State degree planning · In development</p>
     <h1>A clearer path.<br /><span>One semester at a time.</span></h1>
-    <p class="intro">PackPlan will help you connect the courses you’ve taken with the semesters ahead. We’re starting with a working foundation.</p>
+    <p class="intro">Connect the courses you’ve taken with the semesters ahead. Start by checking enrollment requirements in our small course sample.</p>
+    <RouterLink to="/eligibility">Check a course’s requirements →</RouterLink>
   </section>
   <div class="grid">
     <section class="card" aria-labelledby="connection-title">
@@ -64,9 +65,9 @@ onUnmounted(() => controller?.abort())
       <button :disabled="checking" @click="checkConnection">{{ checking ? 'Checking…' : 'Check connection again' }}</button>
       <div class="connection" :class="databaseState" role="status" aria-live="polite">
         <strong>{{ databaseState === 'success' ? 'Neo4j connected' : databaseState === 'loading' ? 'Checking database…' : databaseState === 'unknown' ? 'Database status unknown' : 'Database unavailable' }}</strong>
-        <p>{{ databaseState === 'success' ? 'Spring Boot successfully queried Neo4j. Curriculum data has not been imported yet.' : databaseState === 'unknown' ? 'Restore the backend connection to check the database.' : databaseState === 'error' ? 'The backend is running, but its database check failed. Check the Neo4j container and connection settings, then retry.' : 'Waiting for the database connection check.' }}</p>
+        <p>{{ databaseState === 'success' ? 'Spring Boot successfully queried Neo4j. Course availability depends on the catalog data loaded in this database.' : databaseState === 'unknown' ? 'Restore the backend connection to check the database.' : databaseState === 'error' ? 'The backend is running, but its database check failed. Check the Neo4j container and connection settings, then retry.' : 'Waiting for the database connection check.' }}</p>
       </div>
-      <p class="caption">A successful connection verifies the application foundation. Catalog data is not loaded yet.</p>
+      <p class="caption">A successful connection verifies the application foundation. It does not establish that the catalog is complete.</p>
     </section>
     <section class="card muted" aria-labelledby="next-title">
       <p class="eyebrow">Up next</p>
