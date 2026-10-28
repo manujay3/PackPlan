@@ -12,6 +12,7 @@
     "test:e2e:live": "PACKPLAN_LIVE_E2E=true playwright test tests/eligibility-live.spec.js --project=desktop"
   },
   "dependencies": {
+    "pdfjs-dist": "^5.4.296",
     "vue": "^3.5.0",
     "vue-router": "^4.5.0"
   },

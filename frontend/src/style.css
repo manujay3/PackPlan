@@ -2,7 +2,7 @@
 * { box-sizing: border-box; }
 body { margin: 0; }
 a { color: #a80000; text-underline-offset: 4px; }
-a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid #195fa0; outline-offset: 5px; }
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 3px solid #195fa0; outline-offset: 5px; }
 .header { background: white; border-top: 5px solid #c00; border-bottom: 1px solid #dedbd7; padding: 22px max(6vw, 20px); display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .brand { display: flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 800; text-decoration: none; color: #242424; }
 .brand-mark { background: #c00; color: white; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 7px; }
@@ -28,6 +28,14 @@ footer { padding: 24px max(6vw, 20px); border-top: 1px solid #dedbd7; color: #62
 .eligibility-layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; gap: 24px; }
 .evidence-form label { display: block; font-size: 14px; font-weight: 650; margin-bottom: 6px; }
 select { display: block; width: 100%; min-height: 46px; border: 1px solid #99938b; border-radius: 6px; padding: 10px; font: inherit; font-size: 14px; color: #242424; background: white; }
+.course-import textarea { display: block; width: 100%; min-height: 110px; margin: 6px 0 12px; border: 1px solid #99938b; border-radius: 6px; padding: 10px; font: 13px/1.5 ui-monospace, monospace; color: #242424; background: white; resize: vertical; }
+.degree-audit-import textarea { display: block; width: 100%; min-height: 110px; margin: 6px 0 12px; border: 1px solid #99938b; border-radius: 6px; padding: 10px; font: 13px/1.5 ui-monospace, monospace; color: #242424; background: white; resize: vertical; }
+.degree-audit-import summary { cursor: pointer; font-weight: 700; margin: 8px 0; }
+.degree-audit-import > label { display: block; margin: 12px 0 6px; font-size: 14px; font-weight: 650; }
+.degree-audit-import > button { margin: 8px 8px 8px 0; }
+.draft-actions { border-top: 1px solid #e1ddd7; margin-top: 20px; padding-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.draft-actions > p { flex-basis: 100%; margin: 0; }
+.draft-actions button { padding: 9px 12px; font-size: 13px; }
 fieldset { border: 0; border-top: 1px solid #e1ddd7; padding: 22px 0 0; margin: 30px 0 0; min-width: 0; }
 legend { font-weight: 750; padding: 0 10px 0 0; font-size: 17px; }
 .field-help { font-size: 13px; color: #625d57; line-height: 1.55; margin: 8px 0 16px; }
@@ -78,6 +86,18 @@ legend { font-weight: 750; padding: 0 10px 0 0; font-size: 17px; }
 .planner-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 24px 0; }
 .planner-actions button:disabled { opacity: .75; }
 .planner-term .concurrent-options { max-height: 390px; overflow: auto; padding-right: 6px; }
+.section-planner { border-top: 1px solid #e1ddd7; margin-top: 24px; padding-top: 18px; }
+.section-planner h3, .schedule-conflicts h3 { margin: 0 0 8px; font-size: 18px; }
+.section-course { border: 1px solid #e1ddd7; border-radius: 8px; padding: 14px; margin: 12px 0; }
+.section-course-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.section-course-heading button { padding: 8px 12px; font-size: 13px; }
+.section-choice { max-width: 680px; margin: 12px 0; }
+.section-choice label { display: block; margin: 8px 0 6px; font-size: 14px; font-weight: 650; }
+.section-options details { background: #f7f6f3; padding: 10px; margin-top: 8px; border-radius: 6px; }
+.section-options summary { cursor: pointer; font-weight: 650; }
+.schedule-conflicts { margin: 20px 0; }
+.schedule-conflicts p { margin: 8px 0 0; }
+.saved-sections { border-left: 2px solid #dedbd7; color: #625d57; font-size: 12px; }
 .alternatives-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; margin: 20px 0; }
 .alternative-slot { min-width: 0; border: 1px solid #e1ddd7; border-radius: 8px; padding: 20px; overflow-wrap: anywhere; }
 .alternative-slot h3 { margin-top: 0; }

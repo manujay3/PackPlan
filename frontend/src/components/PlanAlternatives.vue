@@ -106,7 +106,7 @@ onUnmounted(() => { clearComparison(); window.removeEventListener('storage', sto
   <section class="card alternatives-panel" aria-labelledby="plans-title">
     <p class="eyebrow">Two saved plans</p>
     <h2 id="plans-title" ref="title" tabindex="-1">Save and compare schedules</h2>
-    <p class="scope-note">Saves include term order, course choices, caps, prior grades, and assumed passing outcomes. They stay in this browser. Comparisons check each term against current rules; results are not saved.</p>
+    <p class="scope-note">Saves include term order, course choices, selected sections, caps, prior grades, and assumed passing outcomes. They stay in this browser. Comparisons check each term against current rules; results are not saved.</p>
     <p v-if="storageError" class="form-error" role="alert">{{ storageError }}</p>
     <button v-if="storageError" class="secondary-button" type="button" @click="clearSaved">Clear saved plans</button>
     <p role="status" aria-live="polite">{{ message }}</p>
@@ -125,6 +125,7 @@ onUnmounted(() => { clearComparison(); window.removeEventListener('storage', sto
           <div v-for="(term, termIndex) in slot.plan.terms" :key="termIndex" class="saved-plan-term">
             <h4>{{ term.label || `Term ${termIndex + 1}` }} · cap {{ term.creditCap }}</h4>
             <ul><li v-for="id in term.proposedCourses" :key="id">{{ courseNames[id] || id }}</li></ul>
+            <ul v-if="term.sectionSelections?.length" class="saved-sections"><li v-for="section in term.sectionSelections" :key="`${section.courseId}-${section.component}`">{{ section.courseCode }} {{ section.component }} {{ section.section }} · #{{ section.classNumber }} · {{ section.meetingText }} · {{ section.location }}</li></ul>
             <p class="field-help">{{ term.carryPassed ? `Later terms assume ${gradeName(term.assumedGrade)} with earned credit.` : 'No pass assumption carried forward.' }}</p>
             <section v-if="results[index]?.[termIndex]" class="comparison-result">
               <h4 class="result-summary" :class="results[index][termIndex].status.toLowerCase()">{{ statusLabels[results[index][termIndex].status] }}</h4>

@@ -1,6 +1,6 @@
 # PackPlan
 
-A degree and semester planning project for NC State students. **Application setup is implemented: Vue communicates with Spring Boot, which connects to Neo4j.** Curriculum import and planning logic are next. This is an independent portfolio project, not an official advising or graduation audit tool.
+A degree and semester planning project for NC State students. **The Vue, Spring Boot, and Neo4j application is implemented, with course eligibility checks and a local Spring 2027 planning workflow.** Curriculum coverage remains incomplete. This is an independent portfolio project, not an official advising or graduation audit tool.
 
 ## Run with Docker (PowerShell)
 
@@ -43,6 +43,26 @@ Ports bind only to the local machine. These containers are for local development
 
 ## Local development with hot reload
 
+### macOS quick start
+
+Docker Desktop is optional for the Spring 2027 planner and live section lookup. Use Java 21 for the backend. In one terminal:
+
+```sh
+cd backend
+export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+./mvnw spring-boot:run
+```
+
+In a second terminal:
+
+```sh
+cd frontend
+npm ci
+npm run dev
+```
+
+Open http://localhost:5173. The Maven wrapper downloads Maven and dependencies on first use. Without Neo4j, database-backed eligibility and catalog imports are unavailable; the planner, manual course entry, and live Spring 2027 section lookup can still be used. MyPack transcript and degree-audit data can be imported later from the planner.
+
 ### Neo4j configuration
 
 Neo4j Community Edition is a separate Compose service. Spring Boot connects with the official Java driver, auto-configured by Spring Boot. Course imports are opt-in; normal startup does not populate the database. `/api/status` checks the API itself; `/api/database/status` runs a read-only query and returns `{"status":"UP"}` or HTTP 503 with `{"status":"DOWN"}`. Driver details are not sent to clients. The overview displays these two checks separately.
@@ -62,7 +82,9 @@ Course metadata for CSC 116, CSC 216, CSC 217, E 115, COS 100, MA 121, MA 131, a
 With Neo4j running, use Java 21 and Maven on macOS/Linux:
 
 ```sh
-mvn -f backend/pom.xml spring-boot:run -Dspring-boot.run.arguments=--packplan.catalog.import-courses=true
+cd backend
+export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+./mvnw spring-boot:run -Dspring-boot.run.arguments=--packplan.catalog.import-courses=true
 ```
 
 On Windows, use `backend/mvnw.cmd` from the backend directory with the same Spring Boot argument. After the import, restart normally without the flag. `GET /api/catalog/courses` returns courses ordered by ID, or an empty array before import. Course metadata does not include prerequisite or degree requirement rules, so `catalogReady` remains `false`.
@@ -188,6 +210,16 @@ checks proposed-course credits from reviewed catalog metadata; overloads block
 the semester, and unresolved credit totals require review.
 See [rule review and live verification](docs/course-rule-review.md) for the
 timing review evidence, import instructions, and repeatable live check.
+Choose **Plan terms** at `/planner` to create a Spring 2027 draft, add more
+terms, import transcript history and degree-audit course choices, save incomplete
+progress, and save/compare two complete plans locally.
+Look up published Spring 2027 class sections by course code and check meeting
+time overlaps. Imported attempts require explicit grade and earned-credit
+review. Course-history import reads copied HTML tables, pasted tabular text,
+CSV/TSV, and selectable PDF text locally in the browser. Scanned PDFs need OCR;
+MyPack page markup is not parsed, and PDF extraction still needs validation
+against an actual MyPack export.
+See [multi-term planning and import limits](docs/multi-term-planning.md).
 
 ## Tests
 
@@ -201,11 +233,13 @@ npm.cmd run build
 
 `StatusControllerTest` starts the Spring application context and checks the API contract, including `catalogReady: false` and cache prevention. `DatabaseStatusControllerTest` uses a mocked driver to test successful query/session cleanup and safe HTTP 503 responses without taking down the API. These tests need no live database. Docker builds run all tests; the helper's `check` action additionally exercises the real frontend proxy, Java API, and Neo4j. Frontend build checks compilation; it does not establish browser behavior. See `docs/verification.md` for checks actually performed.
 
-From `frontend`, `npm run test:e2e` runs the eligibility screen's desktop and
-mobile browser checks with mocked APIs (Google Chrome required). The opt-in
+From `frontend`, `npm run test:e2e` runs desktop and mobile browser checks for
+the eligibility, saved-alternative, and multi-term planner flows with mocked
+APIs (Google Chrome required). The opt-in
 `npm run test:e2e:live` command on macOS/Linux checks the actual backend and
 imported Neo4j sample. See [browser verification and PowerShell instructions](docs/eligibility.md#browser-verification--october-26-2026).
-`npm run test:unit` checks saved-alternative storage behavior without a browser.
+`npm run test:unit` checks storage, course-history parsing, and term sequencing
+without a browser.
 
 ## Curriculum scope and data
 
