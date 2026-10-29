@@ -1,5 +1,23 @@
 # Milestone 1 verification
 
+## October 29, 2026: Windows startup recovery
+
+- Fixed the frontend Docker build: the planner imports the backend's sample
+  catalog, so Compose now builds from the repository root. A Dockerfile-specific
+  allowlist includes frontend sources and only the required catalog JSON.
+- Docker Compose rebuilt both images and reported all three services healthy.
+  The frontend proxy returned database status `UP`; `/planner` returned HTTP 200.
+- All 133 backend tests and 31 frontend unit tests passed locally before the
+  dependency reinstall attempt. The Docker production build also passed.
+- The existing database contains only three courses and an older CSC 216 rule
+  marked `NEEDS_REVIEW`. Live requests through the proxy returned `MANUAL_REVIEW`
+  for C plus concurrent CSC 217, and `BLOCKED` for C-minus. Refreshing the sample
+  catalog and rules remains pending; the current database is not the latest fixture.
+- Local `npm ci` failed with registry access `EACCES`, leaving the Windows
+  dependency installation incomplete. Browser tests were not run successfully.
+  The running Docker application is usable independently of that installation.
+
+
 Verification began September 15, 2026 (America/New_York) and was updated September 16, 2026.
 
 ## Passed

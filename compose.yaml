@@ -33,7 +33,9 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
   frontend:
-    build: ./frontend
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
     ports:
       - "127.0.0.1:5173:80"
     depends_on:

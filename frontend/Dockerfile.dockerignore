@@ -1,0 +1,15 @@
+# The frontend needs only its sources and the shared sample catalog.
+**
+!frontend/
+!frontend/**
+!backend/
+!backend/src/
+!backend/src/main/
+!backend/src/main/resources/
+!backend/src/main/resources/catalog/
+!backend/src/main/resources/catalog/courses.json
+frontend/node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+frontend/.npm-cache/
